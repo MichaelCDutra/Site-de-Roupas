@@ -7,25 +7,27 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 
+// --- IMPORTA A FUNÇÃO DE CRIAR TABELAS DO DB.JS ---
+const { criarTabelas } = require("./db"); // <--- MUDANÇA AQUI
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
 // --- Configuração Automática de Pastas ---
-// Garante que a pasta 'public/img/produtos' exista
 const uploadDir = path.join(__dirname, "frontend/img/produtos");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log("📂 Pasta de uploads criada automaticamente em:", uploadDir);
 }
-// --- Configuração do Multer (Upload de Imagens) ---
+
+// --- Configuração do Multer ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Gera nome único: data-random.extensão
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
   },
@@ -35,25 +37,22 @@ const upload = multer({ storage: storage });
 
 // --- Importação dos Controllers ---
 const {
-  listarProdutos, // Apenas ativos (Site)
-  listarTodosAdmin, // Todos (Admin)
-  buscarProduto, // Um específico
-  inserirProduto, // Criar
-  atualizarProduto, // Editar
-  alternarStatus, // Arquivar/Ativar
+  listarProdutos,
+  listarTodosAdmin,
+  buscarProduto,
+  inserirProduto,
+  atualizarProduto,
+  alternarStatus,
 } = require("./controllers/produtoController");
 
 const {
   loginUsuario,
-  setupDatabase,
+  // setupDatabase -> REMOVIDO DAQUI, pois agora usamos o criarTabelas do db.js
 } = require("./controllers/usuarioController");
-
-// --- Inicialização do Banco ---
-setupDatabase();
 
 // ================= ROTAS =================
 
-// 1. Rota Pública (Site): Lista apenas produtos ativos
+// 1. Rota Pública
 app.get("/produtos", async (req, res) => {
   try {
     const produtos = await listarProdutos();
@@ -63,7 +62,7 @@ app.get("/produtos", async (req, res) => {
   }
 });
 
-// 2. Rota Admin (Painel): Lista TODOS (ativos e arquivados)
+// 2. Rota Admin
 app.get("/produtos/admin", async (req, res) => {
   try {
     const produtos = await listarTodosAdmin();
@@ -73,7 +72,7 @@ app.get("/produtos/admin", async (req, res) => {
   }
 });
 
-// 3. Buscar um produto específico (Detalhes)
+// 3. Buscar um produto
 app.get("/produtos/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -89,7 +88,7 @@ app.get("/produtos/:id", async (req, res) => {
   }
 });
 
-// 4. Criar Produto (Com Upload)
+// 4. Criar Produto
 app.post("/produtos", upload.single("imagem"), async (req, res) => {
   try {
     const { titulo, descricao, preco, categoria } = req.body;
@@ -115,16 +114,13 @@ app.post("/produtos", upload.single("imagem"), async (req, res) => {
   }
 });
 
-// 5. Editar Produto (PUT)
+// 5. Editar Produto
 app.put("/produtos/:id", upload.single("imagem"), async (req, res) => {
   try {
     const id = req.params.id;
-    // ADICIONADO: descricao
     const { titulo, descricao, preco, categoria } = req.body;
-
     const imagem = req.file ? req.file.filename : null;
 
-    // Passamos a descricao para a função
     await atualizarProduto(id, {
       titulo,
       descricao,
@@ -139,7 +135,7 @@ app.put("/produtos/:id", upload.single("imagem"), async (req, res) => {
   }
 });
 
-// 6. Arquivar/Ativar Produto (Soft Delete)
+// 6. Arquivar/Ativar
 app.delete("/produtos/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -164,7 +160,11 @@ app.post("/login", async (req, res) => {
 // --- Servir Arquivos Estáticos ---
 app.use("/img", express.static(uploadDir));
 
+// --- INICIALIZAÇÃO ---
+// Chama a função que cria as tabelas ANTES de ligar o servidor
+criarTabelas();
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
