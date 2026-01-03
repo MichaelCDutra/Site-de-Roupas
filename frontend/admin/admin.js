@@ -1,4 +1,3 @@
-// --- SEGURANÇA: Verifica Login ---
 const usuarioLogado = localStorage.getItem("usuarioLogado");
 
 if (!usuarioLogado) {

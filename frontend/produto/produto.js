@@ -1,4 +1,4 @@
-const API_URL = "site-de-roupas-production.up.railway.app";
+const API_URL = "https://site-de-roupas-production.up.railway.app";
 
 const imgEl = document.getElementById('prod-img');
 const tituloEl = document.getElementById('prod-titulo');
