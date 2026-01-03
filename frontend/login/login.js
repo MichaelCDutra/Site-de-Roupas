@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = "site-de-roupas-production.up.railway.app";
 const form = document.getElementById('formLogin');
 const msgErro = document.getElementById('msg-erro');
 

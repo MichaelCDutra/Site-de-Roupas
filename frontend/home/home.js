@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_URL = "site-de-roupas-production.up.railway.app";
 const vitrine = document.getElementById("vitrine-home");
 
 async function carregarHome() {
