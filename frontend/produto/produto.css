@@ -1,0 +1,233 @@
+:root {
+  --primary: #ff85a2;
+  --secondary: #74c0fc;
+  --bg: #f8f9fa;
+  --text: #444;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Quicksand", sans-serif;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: 50px;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Header (Padrão) */
+header {
+  background: white;
+  padding: 15px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  margin-bottom: 40px;
+}
+.navbar {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  align-items: center;
+}
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary);
+}
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+.nav-links a:hover {
+  color: var(--primary);
+}
+
+/* Layout do Produto */
+.container-produto {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.produto-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.img-area img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 15px;
+  border: 1px solid #eee;
+}
+
+.info-area {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tag-categoria {
+  background: #eee;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  width: fit-content;
+  margin-bottom: 10px;
+  color: #666;
+}
+.info-area h1 {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+.preco {
+  font-size: 2rem;
+  color: var(--primary);
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+.descricao-box {
+  background: #fdfdfd;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0;
+  margin-bottom: 25px;
+}
+.descricao-box h3 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  color: var(--secondary);
+}
+.descricao-box p {
+  line-height: 1.6;
+  color: #555;
+}
+
+.btn-zap-grande {
+  background: #25d366;
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  transition: transform 0.2s;
+}
+.btn-zap-grande:hover {
+  background: #1ebc57;
+  transform: scale(1.02);
+}
+
+/* Recomendados */
+.recomendados {
+  max-width: 1000px;
+  margin: 50px auto 0;
+  padding: 0 20px;
+}
+.recomendados h3 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: #555;
+}
+
+.grid-produtos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+.card:hover {
+  transform: translateY(-5px);
+}
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.card h4 {
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+.card .preco-card {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .produto-wrapper {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .img-area img {
+    height: 300px;
+  }
+}
+/* --- CSS DO RODAPÉ (Adicionar no final) --- */
+.site-footer {
+    background: white;
+    margin-top: 60px; /* Garante espaço do conteúdo acima */
+    padding: 50px 0 0;
+    border-top: 1px solid #eee;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    padding: 0 20px 40px;
+}
+
+.footer-section h4 {
+    color: var(--primary);
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+.footer-section p {
+    color: #666;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.footer-section ul { list-style: none; }
+.footer-section ul li { margin-bottom: 10px; }
+.footer-section ul li a { color: #555; transition: 0.3s; }
+.footer-section ul li a:hover { color: var(--primary); padding-left: 5px; }
+
+.footer-bottom {
+    background: #fdfdfd;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid #f0f0f0;
+    color: #888;
+    font-size: 0.9rem;
+}

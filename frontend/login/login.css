@@ -1,0 +1,89 @@
+:root { --primary: #ff85a2; --primary-dark: #ff6b8b; --bg-gradient: linear-gradient(135deg, #fff0f3 0%, #fff9db 100%); }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Quicksand', sans-serif; }
+
+body {
+    background: var(--bg-gradient);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-container {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.login-box {
+    background: rgba(255, 255, 255, 0.95); /* Leve transparência */
+    padding: 50px 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(255, 133, 162, 0.15); /* Sombra colorida suave */
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid white;
+}
+
+h2 {
+    color: #444;
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+p.subtitle {
+    color: #888;
+    margin-bottom: 30px;
+    font-size: 0.9rem;
+}
+
+.input-group { text-align: left; margin-bottom: 20px; }
+label { display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+
+input {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #eee;
+    background: #fafafa;
+    border-radius: 10px;
+    outline: none;
+    transition: 0.3s;
+    font-size: 1rem;
+}
+
+input:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(255, 133, 162, 0.1);
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 133, 162, 0.4);
+}
+
+button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 133, 162, 0.6);
+}
+
+.erro { color: #e03131; font-size: 0.9rem; margin-top: 20px; min-height: 20px; font-weight: 600; }
+
+.footer-login {
+    margin-top: 25px;
+    font-size: 0.8rem;
+    color: #aaa;
+}
