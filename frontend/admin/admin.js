@@ -11,7 +11,7 @@ function fazerLogout() {
   localStorage.removeItem("usuarioLogado");
   window.location.href = "../login/login.html";
 }
-const API_URL = "site-de-roupas-production.up.railway.app";
+const API_URL = "https://site-de-roupas-production.up.railway.app";
 const adminGrid = document.getElementById("admin-grid");
 const modal = document.getElementById("modalProduto");
 const form = document.getElementById("formProduto");
