@@ -1,0 +1,126 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Usuário (Dono da conta)
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  nomeCompleto String
+  email        String   @unique
+  senhaHash    String
+  dataCriacao  DateTime @default(now())
+  
+  // Relacionamento: Um usuário pode ter uma ou várias lojas (vamos assumir várias)
+  lojas        Loja[]
+}
+
+// 2. Loja (O centro de tudo)
+model Loja {
+  id           Int      @id @default(autoincrement())
+  nomeLoja     String
+  slug         String   @unique // ex: loja-do-joao
+  corPrimaria  String   @default("#000000")
+  logoUrl      String?  // O "?" significa opcional
+  
+  usuarioId    Int
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  // Relacionamentos Inversos (Tudo o que a loja tem)
+  produtos     Produto[]
+  categorias   Categoria[]
+  vendas       Venda[]
+  notificacoes Notificacao[]
+}
+
+// 3. Categorias
+model Categoria {
+  id       Int       @id @default(autoincrement())
+  nome     String
+  ativa    Boolean   @default(true)
+  
+  lojaId   Int
+  loja     Loja      @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  
+  produtos Produto[]
+}
+
+// 4. Produtos
+model Produto {
+  id          Int       @id @default(autoincrement())
+  titulo      String
+  descricao   String?   @db.Text // @db.Text permite textos longos
+  preco       Decimal   @db.Decimal(10, 2)
+  image       String?
+  ativo       Boolean   @default(true)
+  estoque     Int       @default(0)
+
+  lojaId      Int
+  loja        Loja      @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+
+  categoriaId Int?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+
+  // O produto não se liga direto à venda, mas sim aos Itens de Venda (para histórico)
+  itensVenda  ItemVenda[] 
+}
+
+// 5. Vendas
+model Venda {
+  id              Int      @id @default(autoincrement())
+  clienteNome     String?
+  clienteWhatsapp String?
+  totalVenda      Decimal  @db.Decimal(10, 2)
+  status          StatusVenda @default(AGUARDANDO)
+  dataVenda       DateTime @default(now())
+
+  lojaId          Int
+  loja            Loja     @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+
+  itens           ItemVenda[]
+}
+
+// 6. Itens da Venda (Histórico de Preço)
+model ItemVenda {
+  id             Int     @id @default(autoincrement())
+  quantidade     Int
+  precoNoMomento Decimal @db.Decimal(10, 2) // O segredo do histórico!
+
+  vendaId        Int
+  venda          Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+
+  produtoId      Int?    // Pode ser nulo se o produto for excluído depois
+  produto        Produto? @relation(fields: [produtoId], references: [id])
+}
+
+// 7. Notificações
+model Notificacao {
+  id          Int      @id @default(autoincrement())
+  mensagem    String
+  lida        Boolean  @default(false)
+  tipo        TipoNotificacao @default(SISTEMA)
+  dataCriacao DateTime @default(now())
+
+  lojaId      Int
+  loja        Loja     @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+}
+
+// Enums (Listas fixas de opções)
+enum StatusVenda {
+  AGUARDANDO
+  PAGO
+  ENVIADO
+  CANCELADO
+}
+
+enum TipoNotificacao {
+  VENDA
+  ESTOQUE
+  SISTEMA
+}

@@ -1,168 +1,48 @@
 const path = require("path");
-// 1. Carrega variáveis de ambiente
-require("dotenv").config({ path: path.resolve(__dirname, ".env") });
+// 1. Tenta carregar o .env e mostra o resultado
+const envPath = path.resolve(__dirname, ".env");
+const dotenvResult = require("dotenv").config({ path: envPath });
 
-const cors = require("cors");
-const express = require("express");
-const multer = require("multer");
-const fs = require("fs");
-
-// --- IMPORTA A FUNÇÃO DE CRIAR TABELAS DO DB.JS ---
-const { criarTabelas } = require("./db"); // <--- MUDANÇA AQUI
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-// --- Configuração Automática de Pastas ---
-const uploadDir = path.join(__dirname, "frontend/img/produtos");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("📂 Pasta de uploads criada automaticamente em:", uploadDir);
+if (dotenvResult.error) {
+  console.error("❌ ERRO FATAL: Arquivo .env não encontrado em:", envPath);
+  process.exit(1);
+} else {
+  console.log("✅ Arquivo .env carregado de:", envPath);
 }
 
-// --- Configuração do Multer ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
+// 2. Verifica se as variáveis críticas existem
+console.log("🔍 Verificando Variáveis:");
+console.log("   - DATABASE_URL:", process.env.DATABASE_URL ? "OK (Oculto)" : "❌ FALTANDO");
+console.log("   - CLOUDINARY:", process.env.CLOUDINARY_CLOUD_NAME ? "OK" : "❌ FALTANDO");
+console.log("   - PORT:", process.env.PORT || "3000 (Padrão)");
 
-const upload = multer({ storage: storage });
+const express = require("express");
+const cors = require("cors");
+const { PrismaClient } = require("@prisma/client"); // Importa aqui pra testar
+const routes = require("./src/routes");
 
-// --- Importação dos Controllers ---
-const {
-  listarProdutos,
-  listarTodosAdmin,
-  buscarProduto,
-  inserirProduto,
-  atualizarProduto,
-  alternarStatus,
-} = require("./controllers/produtoController");
+const app = express();
+const prisma = new PrismaClient();
 
-const {
-  loginUsuario,
-  // setupDatabase -> REMOVIDO DAQUI, pois agora usamos o criarTabelas do db.js
-} = require("./controllers/usuarioController");
+app.use(cors({ origin: "*" })); // Libera geral para teste
+app.use(express.json());
 
-// ================= ROTAS =================
-
-// 1. Rota Pública
-app.get("/produtos", async (req, res) => {
+// 3. Teste de Conexão com o Banco ao Iniciar
+async function testarBanco() {
   try {
-    const produtos = await listarProdutos();
-    res.json(produtos);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    await prisma.$connect();
+    console.log("✅ BANCO DE DADOS: Conectado com sucesso!");
+  } catch (error) {
+    console.error("❌ ERRO DE CONEXÃO COM BANCO:", error.message);
   }
-});
+}
+testarBanco();
 
-// 2. Rota Admin
-app.get("/produtos/admin", async (req, res) => {
-  try {
-    const produtos = await listarTodosAdmin();
-    res.json(produtos);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 3. Buscar um produto
-app.get("/produtos/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const produto = await buscarProduto(id);
-
-    if (produto) {
-      res.json(produto);
-    } else {
-      res.status(404).json({ mensagem: "Produto não encontrado" });
-    }
-  } catch (err) {
-    res.status(500).json({ mensagem: err.message });
-  }
-});
-
-// 4. Criar Produto
-app.post("/produtos", upload.single("imagem"), async (req, res) => {
-  try {
-    const { titulo, descricao, preco, categoria } = req.body;
-    const imagem = req.file ? req.file.filename : "default.jpg";
-
-    if (!titulo || !preco) {
-      return res
-        .status(400)
-        .json({ mensagem: "Título e Preço são obrigatórios!" });
-    }
-
-    const resultado = await inserirProduto({
-      titulo,
-      descricao,
-      preco,
-      categoria,
-      image: imagem,
-    });
-
-    res.status(201).json(resultado);
-  } catch (err) {
-    res.status(500).json({ mensagem: err.message });
-  }
-});
-
-// 5. Editar Produto
-app.put("/produtos/:id", upload.single("imagem"), async (req, res) => {
-  try {
-    const id = req.params.id;
-    const { titulo, descricao, preco, categoria } = req.body;
-    const imagem = req.file ? req.file.filename : null;
-
-    await atualizarProduto(id, {
-      titulo,
-      descricao,
-      preco,
-      categoria,
-      image: imagem,
-    });
-    res.status(200).json({ msg: "Produto atualizado com sucesso!" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 6. Arquivar/Ativar
-app.delete("/produtos/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    await alternarStatus(id);
-    res.status(200).json({ msg: "Status do produto alterado!" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 7. Login
-app.post("/login", async (req, res) => {
-  try {
-    const { email, senha } = req.body;
-    const usuario = await loginUsuario({ email, senha });
-    res.status(200).json({ usuario });
-  } catch (err) {
-    res.status(401).json({ error: "Credenciais inválidas." });
-  }
-});
-
-// --- Servir Arquivos Estáticos ---
+// ... Resto das configurações de pasta estática ...
+const uploadDir = path.join(__dirname, "public/img");
 app.use("/img", express.static(uploadDir));
 
-// --- INICIALIZAÇÃO ---
-// Chama a função que cria as tabelas ANTES de ligar o servidor
-criarTabelas();
+app.use(routes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
