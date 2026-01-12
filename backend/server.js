@@ -1,50 +1,39 @@
 const path = require("path");
-// 1. Tenta carregar o .env e mostra o resultado
-const envPath = path.resolve(__dirname, ".env");
-const dotenvResult = require("dotenv").config({ path: envPath });
-
-if (dotenvResult.error) {
-  console.error("❌ ERRO FATAL: Arquivo .env não encontrado em:", envPath);
-  process.exit(1);
-} else {
-  console.log("✅ Arquivo .env carregado de:", envPath);
-}
-
-// 2. Verifica se as variáveis críticas existem
-console.log("🔍 Verificando Variáveis:");
-console.log("   - DATABASE_URL:", process.env.DATABASE_URL ? "OK (Oculto)" : "❌ FALTANDO");
-console.log("   - CLOUDINARY:", process.env.CLOUDINARY_CLOUD_NAME ? "OK" : "❌ FALTANDO");
-console.log("   - PORT:", process.env.PORT || "3000 (Padrão)");
+// Tenta carregar o .env (se existir), mas não trava se falhar
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const express = require("express");
 const cors = require("cors");
-const { PrismaClient } = require("@prisma/client"); // Importa aqui pra testar
 const routes = require("./src/routes");
 
 const app = express();
-const prisma = new PrismaClient();
 
-app.use(cors({ origin: "*" })); // Libera geral para teste
+// --- Configurações ---
+app.use(cors({
+    origin: "*", // Libera acesso para todos (Frontend e Backend)
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 app.use(express.json());
 
-// 3. Teste de Conexão com o Banco ao Iniciar
-async function testarBanco() {
-  try {
-    await prisma.$connect();
-    console.log("✅ BANCO DE DADOS: Conectado com sucesso!");
-  } catch (error) {
-    console.error("❌ ERRO DE CONEXÃO COM BANCO:", error.message);
-  }
-}
-testarBanco();
-
-// ... Resto das configurações de pasta estática ...
+// --- Arquivos Estáticos (Imagens) ---
+// Em produção no Railway, essa pasta é temporária, mas mantemos para compatibilidade
 const uploadDir = path.join(__dirname, "public/img");
 app.use("/img", express.static(uploadDir));
 
+// --- Rotas ---
 app.use(routes);
 
+// --- Inicialização ---
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    
+    // Log para ajudar a debugar se as variáveis entraram
+    console.log("Variáveis de Ambiente:");
+    console.log("- Porta:", PORT);
+    console.log("- Banco:", process.env.DATABASE_URL ? "OK (Definido)" : "❌ FALTANDO");
+    console.log("- Cloudinary:", process.env.CLOUDINARY_CLOUD_NAME ? "OK (Definido)" : "❌ FALTANDO");
 });
