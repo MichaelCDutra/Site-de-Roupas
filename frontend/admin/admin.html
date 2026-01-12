@@ -3,151 +3,350 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin | Modo Edição</title>
-    <link rel="stylesheet" href="admin.css" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <title>Painel Administrativo</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: "Segoe UI", sans-serif;
+      }
+      body {
+        margin: 0;
+        display: flex;
+        background-color: #f4f4f9;
+        height: 100vh;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 250px;
+        background: #2c3e50;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+      }
+      .sidebar h2 {
+        margin-bottom: 40px;
+        text-align: center;
+      }
+      .btn-menu {
+        background: none;
+        border: none;
+        color: white;
+        padding: 15px;
+        text-align: left;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+        border-radius: 5px;
+      }
+      .btn-menu:hover {
+        background: #34495e;
+      }
+      .btn-logout {
+        margin-top: auto;
+        background: #c0392b;
+      }
+
+      /* Conteúdo Principal */
+      .main-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      /* Dashboard Cards */
+      .cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+      .card-single {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .card-single h1 {
+        margin: 0;
+        font-size: 2rem;
+        color: #2c3e50;
+      }
+      .card-single span {
+        color: #7f8c8d;
+      }
+
+      /* Grid de Produtos */
+      .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .btn-novo {
+        background: #27ae60;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      #admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+      }
+
+      .card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        position: relative;
+        transition: transform 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+      }
+      .card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 5px;
+        margin-bottom: 10px;
+      }
+      .card h4 {
+        margin: 10px 0 5px 0;
+        font-size: 1.1rem;
+      }
+      .card .preco {
+        font-weight: bold;
+        color: #27ae60;
+        font-size: 1.2rem;
+        display: block;
+      }
+      .card-inativo {
+        opacity: 0.6;
+        background-color: #ecf0f1;
+      }
+
+      /* Botões de Ação no Card */
+      .acoes-card {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 5px;
+      }
+      .btn-icon {
+        background: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      /* MODAL */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .modal-content {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .close {
+        font-size: 28px;
+        cursor: pointer;
+      }
+
+      .input-group {
+        margin-bottom: 15px;
+      }
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      .input-group input,
+      .input-group textarea,
+      .input-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .row {
+        display: flex;
+        gap: 15px;
+      }
+
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .btn-cancel {
+        background: #95a5a6;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .btn-save {
+        background: #2980b9;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .btn-save:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+      }
+    </style>
   </head>
   <body>
-    <header>
-      <div class="navbar">
-        <div class="logo">
-          Essência<span>Kids</span>
-          <small style="font-size: 0.8rem; color: #666">(Modo Admin)</small>
-        </div>
-        <nav class="nav-links">
-          <a href="../home/home.html" target="_blank">Ver Site Real</a>
-          <a
-            href="#"
-            onclick="fazerLogout()"
-            style="color: red; margin-left: 15px"
-            >Sair</a
-          >
-        </nav>
-      </div>
-    </header>
+    <div class="sidebar">
+      <h2 id="nome-loja">Minha Loja</h2>
+      <button class="btn-menu">📦 Produtos</button>
+      <button class="btn-menu">📁 Categorias</button>
+      <button class="btn-menu btn-logout" onclick="fazerLogout()">
+        🚪 Sair
+      </button>
+    </div>
 
-    <section class="dashboard-container">
-      <div class="dash-card">
-        <div class="dash-icon" style="background: #e3f2fd; color: #1971c2">
-          📦
+    <div class="main-content">
+      <div class="cards-container">
+        <div class="card-single">
+          <div>
+            <h1 id="dash-total">0</h1>
+            <span>Total Produtos</span>
+          </div>
+          <div style="font-size: 2rem">📦</div>
         </div>
-        <div class="dash-info">
-          <h3>Total Produtos</h3>
-          <span id="dash-total">0</span>
+        <div class="card-single">
+          <div>
+            <h1 id="dash-ativos">0</h1>
+            <span>Ativos</span>
+          </div>
+          <div style="font-size: 2rem">✅</div>
         </div>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-icon" style="background: #d3f9d8; color: #2b8a3e">
-          ✅
+        <div class="card-single">
+          <div>
+            <h1 id="dash-vendas">R$ 0,00</h1>
+            <span>Valor em Estoque</span>
+          </div>
+          <div style="font-size: 2rem">💰</div>
         </div>
-        <div class="dash-info">
-          <h3>Ativos no Site</h3>
-          <span id="dash-ativos">0</span>
-        </div>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-icon" style="background: #fff0f6; color: #c2255c">
-          💰
-        </div>
-        <div class="dash-info">
-          <h3>Vendas (Mês)</h3>
-          <span>R$ <span id="dash-vendas">1.250,00</span></span>
-          <small style="color: green; font-size: 0.8rem"
-            >+12% vs mês passado</small
-          >
+        <div class="card-single">
+          <div>
+            <h1 id="dash-visitas">0</h1>
+            <span>Arquivados</span>
+          </div>
+          <div style="font-size: 2rem">📁</div>
         </div>
       </div>
 
-      <div class="dash-card">
-        <div class="dash-icon" style="background: #fff9db; color: #f08c00">
-          👀
-        </div>
-        <div class="dash-info">
-          <h3>Visitas Hoje</h3>
-          <span id="dash-visitas">142</span>
-        </div>
+      <div class="header-section">
+        <h2>Gerenciar Produtos</h2>
+        <button class="btn-novo" onclick="abrirModal()">+ Novo Produto</button>
       </div>
-    </section>
-    <section
-      class="hero editable-area"
-      onclick="alert('Funcionalidade futura: Editar texto do banner!')"
-    >
-      <div class="hero-content">
-        <h2>Moda com carinho<br />para os pequenos</h2>
-        <p>Clique aqui para simular a edição deste texto.</p>
-      </div>
-    </section>
 
-    <section class="container">
-      <h3 class="titulo-secao">Gerenciar Produtos</h3>
-      <div id="admin-grid" class="grid-produtos">
+      <div id="admin-grid">
         <p>Carregando produtos...</p>
       </div>
-    </section>
+    </div>
 
-    <button class="fab-add" onclick="abrirModal()">+</button>
-
-    <div id="modalProduto" class="modal-overlay">
+    <div id="modalProduto" class="modal">
       <div class="modal-content">
         <div class="modal-header">
           <h3>Novo Produto</h3>
-          <button class="btn-close" onclick="fecharModal()">&times;</button>
+          <span class="close" onclick="fecharModal()">&times;</span>
         </div>
 
-        <form id="formProduto">
-          <div class="form-group">
-            <label>Título</label>
+        <div id="containerFormulario">
+          <div class="input-group">
+            <label>Título do Produto</label>
             <input
               type="text"
-              name="titulo"
-              required
-              placeholder="Ex: Conjunto Verão"
+              id="inputTitulo"
+              placeholder="Ex: Camiseta Azul"
             />
           </div>
-          <div class="form-group">
+
+          <div class="input-group">
             <label>Descrição</label>
-            <textarea
-              name="descricao"
-              rows="4"
-              placeholder="Detalhes do tecido, tamanhos, etc..."
-              style="
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                font-family: inherit;
-              "
-            ></textarea>
+            <textarea id="inputDescricao" rows="3"></textarea>
           </div>
-          <div class="form-group">
-            <label>Preço</label>
-            <input
-              type="number"
-              step="0.01"
-              name="preco"
-              required
-              placeholder="0.00"
+
+          <div class="row">
+            <div class="input-group">
+              <label>Preço (R$)</label>
+              <input
+                type="text"
+                id="inputPreco"
+                inputmode="decimal"
+                placeholder="0,00"
+                oninput="formatarMoedaInput(this)"
+              />
+            </div>
+
+            <div class="input-group">
+              <label>Categoria</label>
+              <select id="selectCategoria">
+                <option value="">Carregando...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Imagem</label>
+            <img
+              id="imagemPreview"
+              style="display: none; width: 100px; margin-bottom: 10px"
             />
+            <input type="file" id="fileInput" accept="image/*" />
           </div>
-          <div class="form-group">
-            <label>Categoria</label>
-            <select name="categoria">
-              <option value="Masculino">Masculino</option>
-              <option value="Feminino">Feminino</option>
-              <option value="Bebê">Bebê</option>
-            </select>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="fecharModal()">
+              Cancelar
+            </button>
+            <button type="button" class="btn-save" onclick="salvarProduto()">
+              Salvar Produto
+            </button>
           </div>
-          <div class="form-group">
-            <label>Foto</label>
-            <input type="file" name="imagem" accept="image/*" required />
-          </div>
-          <button type="submit" class="btn-salvar">Salvar Produto</button>
-        </form>
+        </div>
       </div>
     </div>
 

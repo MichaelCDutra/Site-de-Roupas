@@ -1,4 +1,4 @@
-const API_URL = "https://site-de-roupas-production.up.railway.app";
+const API_URL = "https://site-de-roupas-production.up.railway.app"; 
 const form = document.getElementById('formLogin');
 const msgErro = document.getElementById('msg-erro');
 
@@ -20,15 +20,25 @@ form.addEventListener('submit', async (e) => {
 
         if (res.ok) {
             // SUCESSO!
-            // 1. Salva o "crachá" no navegador
-            localStorage.setItem('usuarioLogado', JSON.stringify(dados.usuario));
             
-            // 2. Redireciona para o Admin
+            // --- CORREÇÃO AQUI ---
+            // 1. Salva o Token (Fundamental para as próximas requisições)
+            localStorage.setItem('tokenUsuario', dados.token);
+
+            // 2. Salva dados do Usuário (Para mostrar "Olá, Carlos")
+            localStorage.setItem('usuarioLogado', JSON.stringify(dados.usuario));
+
+            // 3. Salva dados da Loja (Para mostrar "Loja Moda Urbana")
+            localStorage.setItem('lojaLogada', JSON.stringify(dados.loja));
+            
+            // 4. Redireciona
             window.location.href = "../admin/admin.html";
         } else {
-            msgErro.innerText = "E-mail ou senha incorretos.";
+            // Mostra o erro que veio do backend (ex: "Senha incorreta")
+            msgErro.innerText = dados.error || "E-mail ou senha incorretos.";
         }
     } catch (err) {
+        console.error(err);
         msgErro.innerText = "Erro de conexão com o servidor.";
     }
 });
