@@ -19,26 +19,29 @@ form.addEventListener('submit', async (e) => {
         const dados = await res.json();
 
         if (res.ok) {
-            // SUCESSO!
+            // --- PADRONIZAÇÃO PARA O ADMIN.JS ---
             
-            // --- CORREÇÃO AQUI ---
-            // 1. Salva o Token (Fundamental para as próximas requisições)
-            localStorage.setItem('tokenUsuario', dados.token);
+            // 1. Salva como 'token' (como o admin.js espera)
+            localStorage.setItem('token', dados.token);
 
-            // 2. Salva dados do Usuário (Para mostrar "Olá, Carlos")
-            localStorage.setItem('usuarioLogado', JSON.stringify(dados.usuario));
+            // 2. Salva dados do Usuário (com verificação)
+            if (dados.usuario) {
+                localStorage.setItem('usuarioLogado', JSON.stringify(dados.usuario));
+            }
 
-            // 3. Salva dados da Loja (Para mostrar "Loja Moda Urbana")
-            localStorage.setItem('lojaLogada', JSON.stringify(dados.loja));
+            // 3. Salva dados da Loja
+            if (dados.loja) {
+                localStorage.setItem('lojaLogada', JSON.stringify(dados.loja));
+            }
             
-            // 4. Redireciona
+            // 4. Redireciona (Verifique se o caminho ../admin/admin.html está correto)
             window.location.href = "../admin/admin.html";
+            
         } else {
-            // Mostra o erro que veio do backend (ex: "Senha incorreta")
-            msgErro.innerText = dados.error || "E-mail ou senha incorretos.";
+            msgErro.innerText = dados.error || dados.mensagem || "E-mail ou senha incorretos.";
         }
     } catch (err) {
-        console.error(err);
+        console.error("Erro no login:", err);
         msgErro.innerText = "Erro de conexão com o servidor.";
     }
 });
