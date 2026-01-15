@@ -1,39 +1,35 @@
+// server.js atualizado
 const path = require("path");
-// Tenta carregar o .env (se existir), mas não trava se falhar
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const express = require("express");
 const cors = require("cors");
-const routes = require("./src/routes");
+const routesAdmin = require("./src/routes/routes"); // Suas rotas de admin
+const routesLoja = require("./src/routes/routesLoja"); // As novas rotas da vitrine
 
 const app = express();
 
-// --- Configurações ---
 app.use(cors({
-    origin: "*", // Libera acesso para todos (Frontend e Backend)
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-loja-dominio"],
 }));
 
 app.use(express.json());
 
-// --- Arquivos Estáticos (Imagens) ---
-// Em produção no Railway, essa pasta é temporária, mas mantemos para compatibilidade
+// Arquivos Estáticos
 const uploadDir = path.join(__dirname, "public/img");
 app.use("/img", express.static(uploadDir));
 
-// --- Rotas ---
-app.use(routes);
+// --- ROTAS DA LOJA (Públicas) ---
+// O frontend da loja (vitrine) usará este prefixo
+app.use("/api/loja", routesLoja);
 
-// --- Inicialização ---
+// --- ROTAS DO ADMIN (Privadas) ---
+// Suas rotas de gerenciamento
+app.use("/api/admin", routesAdmin);
+
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
-    
-    // Log para ajudar a debugar se as variáveis entraram
-    console.log("Variáveis de Ambiente:");
-    console.log("- Porta:", PORT);
-    console.log("- Banco:", process.env.DATABASE_URL ? "OK (Definido)" : "❌ FALTANDO");
-    console.log("- Cloudinary:", process.env.CLOUDINARY_CLOUD_NAME ? "OK (Definido)" : "❌ FALTANDO");
 });

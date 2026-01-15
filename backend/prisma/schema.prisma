@@ -16,23 +16,20 @@ model Usuario {
   email        String   @unique
   senhaHash    String
   dataCriacao  DateTime @default(now())
-  
-  // Relacionamento: Um usuário pode ter uma ou várias lojas (vamos assumir várias)
   lojas        Loja[]
 }
 
-// 2. Loja (O centro de tudo)
 model Loja {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   nomeLoja     String
-  slug         String   @unique // ex: loja-do-joao
-  corPrimaria  String   @default("#000000")
-  logoUrl      String?  // O "?" significa opcional
+  slug         String    @unique 
+  customDomain String?   @unique 
+  corPrimaria  String    @default("#000000") 
+  logoUrl      String?   
+  whatsapp     String?   
   
   usuarioId    Int
-  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-
-  // Relacionamentos Inversos (Tudo o que a loja tem)
+  usuario      Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   produtos     Produto[]
   categorias   Categoria[]
   vendas       Venda[]
@@ -41,25 +38,27 @@ model Loja {
 
 // 3. Categorias
 model Categoria {
-  id       Int       @id @default(autoincrement())
-  nome     String
-  ativa    Boolean   @default(true)
+  id      Int      @id @default(autoincrement())
+  nome    String
+  ativa   Boolean  @default(true)
   
-  lojaId   Int
-  loja     Loja      @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId  Int
+  loja    Loja     @relation(fields: [lojaId], references: [id], onDelete: Cascade)
   
   produtos Produto[]
 }
 
-// 4. Produtos
+// 4. Produtos (Ajustado para Inventário por Grade)
 model Produto {
   id          Int       @id @default(autoincrement())
   titulo      String
-  descricao   String?   @db.Text // @db.Text permite textos longos
+  descricao   String?   @db.Text
   preco       Decimal   @db.Decimal(10, 2)
   image       String?
   ativo       Boolean   @default(true)
-  estoque     Int       @default(0)
+  
+  // Relacionamento com a Grade (Tamanhos/Cores/Estoque)
+  variacoes   Variacao[]
 
   lojaId      Int
   loja        Loja      @relation(fields: [lojaId], references: [id], onDelete: Cascade)
@@ -67,8 +66,18 @@ model Produto {
   categoriaId Int?
   categoria   Categoria? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
 
-  // O produto não se liga direto à venda, mas sim aos Itens de Venda (para histórico)
   itensVenda  ItemVenda[] 
+}
+
+// NOVO: 4.1 Grade de Estoque (Variações de Tamanho/Cor)
+model Variacao {
+  id         Int      @id @default(autoincrement())
+  tamanho    String   // P, M, G, GG, 38, 40...
+  cor        String?  // Opcional: Azul, Branco, Estampado...
+  quantidade Int      @default(0) // Quantidade específica deste tamanho
+
+  produtoId  Int
+  produto    Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
 }
 
 // 5. Vendas
@@ -86,17 +95,20 @@ model Venda {
   itens           ItemVenda[]
 }
 
-// 6. Itens da Venda (Histórico de Preço)
+// 6. Itens da Venda
 model ItemVenda {
-  id             Int     @id @default(autoincrement())
-  quantidade     Int
-  precoNoMomento Decimal @db.Decimal(10, 2) // O segredo do histórico!
+  id              Int      @id @default(autoincrement())
+  quantidade      Int
+  precoNoMomento  Decimal  @db.Decimal(10, 2)
+  
+  // Opcional: Salvar qual tamanho foi vendido para histórico
+  tamanhoVendido  String?
 
-  vendaId        Int
-  venda          Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  vendaId         Int
+  venda           Venda    @relation(fields: [vendaId], references: [id], onDelete: Cascade)
 
-  produtoId      Int?    // Pode ser nulo se o produto for excluído depois
-  produto        Produto? @relation(fields: [produtoId], references: [id])
+  produtoId       Int?
+  produto         Produto? @relation(fields: [produtoId], references: [id])
 }
 
 // 7. Notificações
@@ -111,7 +123,6 @@ model Notificacao {
   loja        Loja     @relation(fields: [lojaId], references: [id], onDelete: Cascade)
 }
 
-// Enums (Listas fixas de opções)
 enum StatusVenda {
   AGUARDANDO
   PAGO

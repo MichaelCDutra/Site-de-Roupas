@@ -1,80 +1,91 @@
-// prisma/seed.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Iniciando a plantação (Seed)...');
+  console.log('🌱 Iniciando o Seed (Plantando dados)...');
 
-  // --- 1. Limpar banco antigo (opcional, para não duplicar se rodar 2x) ---
-  // A ordem importa por causa das chaves estrangeiras!
-  await prisma.itemVenda.deleteMany();
-  await prisma.venda.deleteMany();
-  await prisma.produto.deleteMany();
-  await prisma.categoria.deleteMany();
-  await prisma.loja.deleteMany();
-  await prisma.usuario.deleteMany();
+  // 1. LIMPEZA TOTAL (Apaga dados antigos para evitar erros de duplicidade)
+  // A ordem é importante para respeitar as chaves estrangeiras
+  await prisma.itemVenda.deleteMany({});
+  await prisma.venda.deleteMany({});
+  await prisma.variacao.deleteMany({});
+  await prisma.produto.deleteMany({});
+  await prisma.categoria.deleteMany({});
+  await prisma.notificacao.deleteMany({});
+  await prisma.loja.deleteMany({});
+  await prisma.usuario.deleteMany({});
 
-  // --- 2. Criar Usuário DONO DA LOJA 1 (Moda Urbana) ---
-  const usuario1 = await prisma.usuario.create({
+  console.log('🧹 Banco de dados limpo!');
+
+  // 2. CRIAR USUÁRIO (Sem o campo telefone, conforme seu schema)
+  const usuario = await prisma.usuario.create({
     data: {
-      nomeCompleto: 'Carlos Empreendedor',
-      email: 'carlos@loja.com',
-      senhaHash: 'senha123', // Em produção, usar bcrypt!
-      lojas: {
-        create: {
-          nomeLoja: 'Moda Urbana',
-          slug: 'moda-urbana',
-          corPrimaria: '#ff5733',
-          categorias: {
-            create: [
-              { nome: 'Camisetas' },
-              { nome: 'Calças' }
-            ]
-          }
-        }
-      }
-    },
-    include: {
-      lojas: { include: { categorias: true } } // Para pegar os IDs criados
+      nomeCompleto: 'Michael Admin',
+      email: 'admin@teste.com',
+      senhaHash: '123456', // Senha simples para teste
+      // telefone removido pois não existe no model Usuario
     }
   });
 
-  const loja1 = usuario1.lojas[0];
-  const catCamisetas = loja1.categorias.find(c => c.nome === 'Camisetas');
+  console.log('👤 Usuário criado: admin@teste.com / 123456');
 
-  // Criar Produtos para Loja 1
-  await prisma.produto.createMany({
-    data: [
-      { titulo: 'Camiseta Básica Preta', preco: 49.90, estoque: 100, lojaId: loja1.id, categoriaId: catCamisetas.id, image: 'camiseta-preta.jpg' },
-      { titulo: 'Calça Jeans Skinny', preco: 120.00, estoque: 50, lojaId: loja1.id, categoriaId: loja1.categorias[1].id, image: 'calca-jeans.jpg' }
-    ]
+  // 3. CRIAR LOJA (Aqui sim temos whatsapp/telefone)
+  const loja = await prisma.loja.create({
+    data: {
+      nomeLoja: 'Urban Style',
+      slug: 'urban-style',           // <--- SLUG PARA O TESTE
+      customDomain: 'urban-style.com', 
+      corPrimaria: '#8B5CF6',        // Roxo Neon
+      whatsapp: '5511999999999',     // O WhatsApp fica na Loja
+      usuarioId: usuario.id
+    }
   });
 
-  // --- 3. Criar Usuário DONO DA LOJA 2 (Geek Store) ---
-  const usuario2 = await prisma.usuario.create({
+  console.log(`🏪 Loja criada: ${loja.nomeLoja} (Slug: ${loja.slug})`);
+
+  // 4. CRIAR CATEGORIA
+  const catRoupas = await prisma.categoria.create({
+    data: { nome: 'Roupas', lojaId: loja.id }
+  });
+
+  // 5. CRIAR PRODUTOS COM VARIAÇÕES
+  // Produto 1
+  await prisma.produto.create({
     data: {
-      nomeCompleto: 'Ana Geek',
-      email: 'ana@geek.com',
-      senhaHash: 'senha123',
-      lojas: {
-        create: {
-          nomeLoja: 'Geek Store',
-          slug: 'geek-store',
-          corPrimaria: '#8e44ad',
-          produtos: {
-            create: [
-              { titulo: 'Action Figure Goku', preco: 250.00, estoque: 10 }
-              // Note que não criei categoria aqui, o que é permitido (opcional)
-            ]
-          }
-        }
+      titulo: 'Camiseta Oversized Tech',
+      descricao: 'Algodão egípcio com corte moderno.',
+      preco: 129.90,
+      ativo: true,
+      lojaId: loja.id,
+      categoriaId: catRoupas.id,
+      variacoes: {
+        create: [
+          { tamanho: 'P', quantidade: 10, cor: 'Preto' },
+          { tamanho: 'M', quantidade: 5, cor: 'Preto' },
+          { tamanho: 'G', quantidade: 2, cor: 'Preto' }
+        ]
       }
     }
   });
 
-  console.log('✅ Banco de dados populado com sucesso!');
-  console.log(`🛒 Loja 1 criada: ${loja1.nomeLoja} (ID: ${loja1.id})`);
-  console.log(`🛒 Loja 2 criada: Geek Store (Dona: ${usuario2.nomeCompleto})`);
+  // Produto 2
+  await prisma.produto.create({
+    data: {
+      titulo: 'Boné Developer',
+      descricao: 'Boné aba curva com logo bordado.',
+      preco: 59.90,
+      ativo: true,
+      lojaId: loja.id,
+      categoriaId: catRoupas.id,
+      variacoes: {
+        create: [
+          { tamanho: 'U', quantidade: 50, cor: 'Cinza' }
+        ]
+      }
+    }
+  });
+
+  console.log('📦 Produtos criados com sucesso!');
 }
 
 main()
