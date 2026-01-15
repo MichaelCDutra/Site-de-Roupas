@@ -1,41 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login | Área Restrita</title>
-    <link rel="stylesheet" href="login.css" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https://res.cloudinary.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;">
-  </head>
-  <body>
-    <div class="login-container">
-      <div class="login-box">
-        <h2>🔐 Acesso Restrito</h2>
-        <p class="subtitle">Gerenciamento da Loja</p>
 
-        <form id="formLogin">
-          <div class="input-group">
-            <label>E-mail</label>
-            <input
-              type="email"
-              name="email"
-              required
-              placeholder="admin@essencia.com"
-            />
-          </div>
-          <div class="input-group">
-            <label>Senha</label>
-            <input type="password" name="senha" required placeholder="******" />
-          </div>
-          <button type="submit">Entrar</button>
-        </form>
-        <p id="msg-erro" class="erro"></p>
-      </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Área Restrita</title>
+  <link rel="stylesheet" href="login.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' http://localhost:3000 https://site-de-roupas-production.up.railway.app https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https:;">
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <h2>🔐 Acesso Restrito</h2>
+      <p class="subtitle">Gerenciamento da Loja</p>
+
+      <form id="formLogin">
+        <div class="input-group">
+          <label>E-mail</label>
+          <input type="email" name="email" required placeholder="admin@essencia.com" />
+        </div>
+        <div class="input-group">
+          <label>Senha</label>
+          <input type="password" name="senha" required placeholder="******" />
+        </div>
+        <button type="submit">Entrar</button>
+      </form>
+      <p id="msg-erro" class="erro"></p>
     </div>
-    <script src="login.js"></script>
-  </body>
+  </div>
+  <script src="login.js"></script>
+</body>
+
 </html>
