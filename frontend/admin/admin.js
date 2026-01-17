@@ -1,7 +1,7 @@
 // =============================================================
 // CONFIGURAÇÃO GLOBAL
 // =============================================================
-const API_BASE = "https://site-de-roupas-production.up.railway.app";
+const API_BASE = "https://site-de-roupas-production.up.railway.app/api/admin";
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. VERIFICAÇÃO DE ACESSO IMEDIATA
