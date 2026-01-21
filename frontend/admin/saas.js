@@ -273,15 +273,15 @@ async function criarLojista(e) {
     btnSubmit.disabled = true;
     btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando...';
 
-    // Coleta TODOS os dados
+    // 🔴 CORREÇÃO 1: Removi o campo 'senha' do payload, pois o backend gera sozinho
     const payload = {
         nome: document.getElementById('novo-nome').value,
         email: document.getElementById('novo-email').value,
-        senha: document.getElementById('novo-senha').value,
+        // senha: document.getElementById('novo-senha').value, <--- REMOVIDO
         nomeLoja: document.getElementById('novo-loja').value,
         whatsapp: document.getElementById('novo-whatsapp').value,
         corPrimaria: document.getElementById('novo-cor').value,
-        customDomain: document.getElementById('novo-dominio').value // Novo Campo
+        customDomain: document.getElementById('novo-dominio').value 
     };
 
     try {
@@ -294,13 +294,16 @@ async function criarLojista(e) {
             body: JSON.stringify(payload)
         });
 
+        const data = await res.json(); // <--- Lê a resposta sempre
+
         if(res.ok) {
-            alert("Lojista criado com sucesso!");
+            // 🔴 CORREÇÃO 2: Mostra a senha retornada pelo backend
+            alert(`✅ Lojista criado com sucesso!\n\n🔑 SENHA TEMPORÁRIA: ${data.senhaTemporaria}\n\nCopie esta senha e envie para o lojista.`);
+            
             fecharModalLojista();
-            carregarLojistas(); // Atualiza tabela
-            carregarStats();    // Atualiza números
+            carregarLojistas(); 
+            carregarStats();    
         } else {
-            const data = await res.json();
             alert(data.error || "Erro ao criar lojista.");
         }
     } catch(err) { 

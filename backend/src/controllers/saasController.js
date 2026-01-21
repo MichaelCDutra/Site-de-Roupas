@@ -31,18 +31,35 @@ module.exports = {
         orderBy: { createdAt: 'desc' }
       });
 
-      const dados = usuarios.map(u => ({
-        id: u.id,
-        nome: u.nome,
-        email: u.email,
-        ativo: u.ativo,
-        nomeLoja: u.loja ? u.loja.nomeLoja : "Pendente",
-        whatsapp: u.loja ? u.loja.whatsapp : null,
-        urlLoja: u.loja 
-          ? (u.loja.customDomain ? `http://${u.loja.customDomain}` : `http://localhost:3000/loja/${u.loja.slug}`) 
-          : null,
-        dataCadastro: u.createdAt
-      }));
+      const dados = usuarios.map(u => {
+        let urlFinal = null;
+
+        if (u.loja) {
+            if (u.loja.customDomain) {
+                // CORREÇÃO: Verifica se já tem protocolo
+                const dominio = u.loja.customDomain;
+                if (dominio.startsWith('http://') || dominio.startsWith('https://')) {
+                    urlFinal = dominio;
+                } else {
+                    urlFinal = `http://${dominio}`;
+                }
+            } else {
+                // Link padrão local
+                urlFinal = `http://localhost:3000/loja/${u.loja.slug}`;
+            }
+        }
+
+        return {
+            id: u.id,
+            nome: u.nome,
+            email: u.email,
+            ativo: u.ativo,
+            nomeLoja: u.loja ? u.loja.nomeLoja : "Pendente",
+            whatsapp: u.loja ? u.loja.whatsapp : null,
+            urlLoja: urlFinal, // Usa a URL tratada
+            dataCadastro: u.createdAt
+        };
+      });
 
       res.json(dados);
     } catch (error) {
