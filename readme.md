@@ -1,4 +1,4 @@
-🇧🇷 Read this README in Portuguese: [README.pt-BR.md](README.pt-BR.md)
+🇧🇷 Read this README in Portuguese: [readme.pt-BR.md](readme.pt-BR.md)
 
 # 🛍️ SaaS Store – Multi-Tenant SaaS Platform for Clothing Stores
 
