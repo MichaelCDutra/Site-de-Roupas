@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Master Admin - Gestão</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="saas.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <nav id="sidebar" class="sidebar saas-sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-server"></i>
+                    <span>SaaS Admin</span>
+                </div>
+                <button type="button" id="btn-collapse" class="collapse-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <ul class="nav-links">
+                <li class="active"><a href="#"><i class="fas fa-users"></i> <span>Lojistas</span></a></li>
+                <li><a href="#" onclick="alert('Em breve: Relatório Financeiro')"><i
+                            class="fas fa-file-invoice-dollar"></i> <span>Pagamentos</span></a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Sair</span></a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <h2 style="margin:0;">Gestão da Plataforma</h2>
+
+                <div class="user-profile">
+                    <span class="badge-role">Super Admin</span>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div class="stats-grid" id="saas-stats">
+                    <div class="loading">Carregando indicadores...</div>
+                </div>
+
+                <div class="section-header" style="margin-top: 30px;">
+                    <h3>Base de Clientes</h3>
+                    <button class="btn-primary" onclick="abrirModalLojista()">
+                        <i class="fas fa-user-plus"></i> Novo Assinante
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Lojista / Email</th>
+                                <th>Loja & URL</th>
+                                <th>WhatsApp</th>
+                                <th>Assinatura</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-lojistas">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-lojista" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="modal-title">Novo Lojista</h3>
+                <button onclick="fecharModalLojista()" class="btn-close"><i class="fas fa-times"></i></button>
+            </div>
+
+            <form id="form-lojista">
+                <div class="modal-stepper">
+                    <div class="step-dot active" id="dot-1">1</div>
+                    <div class="step-dot" id="dot-2">2</div>
+                    <div class="step-dot" id="dot-3">3</div>
+                </div>
+
+                <div class="step-content active" id="step-1">
+                    <h4 style="margin-bottom:15px; text-align:center;">Dados de Acesso</h4>
+
+                    <div class="form-group">
+                        <label>Nome do Responsável *</label>
+                        <input type="text" id="novo-nome" class="input-modern" placeholder="Ex: João Silva" required>
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail (Login) *</label>
+                        <input type="email" id="novo-email" class="input-modern" placeholder="joao@loja.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Senha Inicial *</label>
+                        <input type="password" id="novo-senha" class="input-modern" placeholder="******" required
+                            minlength="6">
+                    </div>
+                </div>
+
+                <div class="step-content" id="step-2">
+                    <h4 style="margin-bottom:15px; text-align:center;">Identidade da Loja</h4>
+
+                    <div class="form-group">
+                        <label>Nome da Loja *</label>
+                        <input type="text" id="novo-loja" class="input-modern" placeholder="Ex: Urban Store" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Domínio do Site (Opcional)</label>
+                        <input type="text" id="novo-dominio" class="input-modern"
+                            placeholder="Ex: www.minhaloja.com.br">
+                        <small style="color:#666; font-size:0.8rem;">A API só aceitará requisições vindas deste
+                            endereço.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>WhatsApp (Somente números)</label>
+                        <input type="text" id="novo-whatsapp" class="input-modern" placeholder="5511999999999">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cor da Marca</label>
+                        <div class="color-input-group">
+                            <input type="color" id="novo-cor" value="#4f46e5">
+                            <span id="hex-preview" style="font-family:monospace; color:#666;">#4f46e5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-content" id="step-3">
+                    <h4 style="margin-bottom:15px; text-align:center; color:#1e293b;">Confirme os Dados</h4>
+
+                    <div class="review-card">
+                        <div class="review-row">
+                            <span class="review-label"><i class="fas fa-user"></i> Responsável</span>
+                            <span class="review-value" id="review-nome">...</span>
+                        </div>
+                        <div class="review-row">
+                            <span class="review-label"><i class="fas fa-envelope"></i> E-mail</span>
+                            <span class="review-value" id="review-email">...</span>
+                        </div>
+
+                        <hr class="review-divider">
+
+                        <div class="review-row">
+                            <span class="review-label"><i class="fas fa-store"></i> Nome da Loja</span>
+                            <span class="review-value" id="review-loja">...</span>
+                        </div>
+                        
+                        <div class="review-row">
+                            <span class="review-label"><i class="fas fa-globe"></i> Domínio</span>
+                            <span class="review-value" id="review-dominio">...</span>
+                        </div>
+
+                        <div class="review-row">
+                            <span class="review-label"><i class="fab fa-whatsapp"></i> WhatsApp</span>
+                            <span class="review-value" id="review-whatsapp">...</span>
+                        </div>
+                        
+                        <div class="review-row">
+                            <span class="review-label"><i class="fas fa-palette"></i> Cor do Tema</span>
+                            <span class="review-value">
+                                <span id="review-cor" class="color-preview-circle"></span>
+                                <span id="review-hex" style="font-size:0.8rem; margin-left:5px;">#000000</span>
+                            </span>
+                        </div>
+
+                        <hr class="review-divider">
+
+                        <div class="review-row" style="flex-direction:column; align-items:flex-start; gap:5px;">
+                            <span class="review-label">Link da Loja (Previsão):</span>
+                            <span class="review-url" id="review-url" style="width:100%; text-align:center;">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer-wizard">
+                    <button type="button" id="btn-voltar" class="btn-secondary" style="visibility: hidden;"
+                        onclick="mudarEtapa(-1)">Voltar</button>
+
+                    <button type="button" id="btn-avancar" class="btn-primary" onclick="mudarEtapa(1)">
+                        Próximo <i class="fas fa-chevron-right"></i>
+                    </button>
+
+                    <button type="submit" id="btn-finalizar" class="btn-confirm" style="display: none;">
+                        <i class="fas fa-check"></i> Criar Conta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="saas.js"></script>
+</body>
+
+</html>

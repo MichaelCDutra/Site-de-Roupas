@@ -4,21 +4,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel Administrativo | Sua Loja</title>
+  <title>Painel Administrativo</title>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
   <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <style>
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e2e8f0;
+      background-color: #fff;
+    }
+
+    .logo-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    #sidebar-logo-img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+  </style>
 </head>
 
 <body>
   <div class="wrapper">
+
     <nav id="sidebar" class="sidebar">
       <div class="sidebar-header">
-        <div class="logo">
-          <i class="fas fa-store"></i>
-          <span>SaaS Store</span>
+        <div class="logo logo-wrapper">
+          <i class="fas fa-store" id="sidebar-icon"></i>
+          <img id="sidebar-logo-img" src="" alt="Logo" style="display:none;">
+          <span id="sidebar-store-name">Saas Store</span>
         </div>
         <button type="button" id="btn-collapse" class="collapse-btn">
           <i class="fas fa-chevron-left"></i>
@@ -46,11 +77,16 @@
     </nav>
 
     <main class="main-content">
+
       <header class="top-bar">
         <h2 id="page-title">Dashboard</h2>
         <div class="user-profile">
-          <span id="admin-name">Olá, Michael</span>
-          <div class="avatar">M</div>
+          <div style="text-align: right; line-height: 1.2;">
+            <span style="display:block; font-weight:600; font-size:0.9rem;">Olá, <span
+                id="header-user-name">Usuário</span></span>
+            <small style="color:#6b7280; font-size: 0.75rem;">Administrador</small>
+          </div>
+          <img src="https://via.placeholder.com/40" alt="Avatar" class="user-avatar" id="header-avatar">
         </div>
       </header>
 
@@ -101,13 +137,10 @@
         <section id="pedidos" class="content-section" style="display: none">
           <div class="section-header">
             <h3>Gestão de Pedidos</h3>
-            <div class="filters">
-              <select id="filter-status" class="form-select">
-                <option value="todos">Todos os Status</option>
-                <option value="AGUARDANDO">Aguardando</option>
-                <option value="PAGO">Pago</option>
-                <option value="ENVIADO">Enviado</option>
-              </select>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button class="btn-primary" onclick="abrirPDV()">
+                <i class="fas fa-cash-register"></i> Nova Venda (PDV)
+              </button>
             </div>
           </div>
 
@@ -121,7 +154,7 @@
                   <th>Itens</th>
                   <th>Total</th>
                   <th>Status</th>
-                  <th>Ações</th>
+                  <th>WhatsApp</th>
                 </tr>
               </thead>
               <tbody id="lista-pedidos"></tbody>
@@ -129,126 +162,208 @@
           </div>
         </section>
 
+        <div id="modal-pdv" class="modal-overlay">
+          <div class="modal-content modal-large" style="height: 85vh;">
+            <div class="modal-header">
+              <h3 style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-shopping-basket" style="color: var(--primary-color);"></i> PDV - Venda Balcão
+              </h3>
+              <button onclick="fecharPDV()" class="btn-close"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="pdv-layout">
+              <div class="pdv-left">
+                <div class="form-section">
+                  <label class="section-label">1. Cliente</label>
+                  <input type="text" id="pdv-cliente" class="input-modern" placeholder="Nome do Cliente (Opcional)">
+                  <input type="text" id="pdv-whatsapp" class="input-modern" placeholder="WhatsApp (Opcional)">
+                </div>
+
+                <div class="form-section" style="flex: 1; display: flex; flex-direction: column;">
+                  <label class="section-label">2. Buscar Produtos</label>
+                  <div style="position: relative;">
+                    <input type="text" id="pdv-busca" class="input-modern" placeholder="Digite o nome do produto..."
+                      oninput="filtrarProdutosPDV(this.value)">
+                    <div id="pdv-sugestoes" class="autocomplete-list"></div>
+                  </div>
+                  <div class="pdv-dica">
+                    <i class="fas fa-info-circle"></i> Clique no produto para adicionar.
+                  </div>
+                </div>
+              </div>
+
+              <div class="pdv-right">
+                <div class="cart-header">
+                  <span>Produto</span>
+                  <span style="width: 60px;">Tam.</span>
+                  <span style="width: 50px;">Qtd.</span>
+                  <span style="width: 80px; text-align: right;">Preço</span>
+                  <span style="width: 30px;"></span>
+                </div>
+
+                <div id="pdv-carrinho-lista" class="cart-items">
+                  <div class="empty-cart-msg">Carrinho vazio</div>
+                </div>
+
+                <div class="cart-footer">
+                  <div class="cart-total-row">
+                    <span>Total:</span>
+                    <span id="pdv-total-final">R$ 0,00</span>
+                  </div>
+                  <button class="btn-confirm" style="width: 100%; justify-content: center; font-size: 1.1rem;"
+                    onclick="finalizarVenda()">
+                    <i class="fas fa-check"></i> Finalizar Venda
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <section id="produtos" class="content-section" style="display: none">
           <div class="section-header">
             <h3>Meus Produtos</h3>
-            <button class="btn-primary" onclick="abrirModalProduto()">
-              <i class="fas fa-plus"></i> Novo Produto
-            </button>
+            <div style="display: flex; gap: 10px;">
+              <select id="filtro-status-produto" class="form-select" onchange="aplicarFiltroProdutos()">
+                <option value="ativos" selected>Ativos</option>
+                <option value="inativos">Arquivados</option>
+                <option value="todos">Todos</option>
+              </select>
+              <button class="btn-primary" onclick="abrirModalProduto()">
+                <i class="fas fa-plus"></i> Novo Produto
+              </button>
+            </div>
           </div>
-
-          <div class="products-grid" id="lista-produtos">
-          </div>
+          <div class="products-grid" id="lista-produtos"></div>
         </section>
 
-        <div id="modal-produto" class="modal">
-          <div class="modal-content">
-            <div class="section-header">
-              <h3 id="modal-titulo">Novo Produto</h3>
-              <button onclick="fecharModalProduto()"
-                style="background:none; border:none; cursor:pointer; font-size:1.2rem;">
-                <i class="fas fa-times"></i>
-              </button>
+        <div id="modal-produto" class="modal-overlay">
+          <div class="modal-content modal-large">
+            <div class="modal-header">
+              <h3 id="modal-titulo">Gerenciar Produto</h3>
+              <button onclick="fecharModalProduto()" class="btn-close"><i class="fas fa-times"></i></button>
             </div>
 
             <form id="form-produto">
               <input type="hidden" id="prod-id">
+              <div class="modal-grid-layout">
+                <div class="modal-left-col">
+                  <label class="section-label">Mídia</label>
+                  <div class="image-upload-wrapper">
+                    <div class="image-preview-container" id="preview-container">
+                      <img id="img-preview" src="https://via.placeholder.com/300x300?text=Sem+Imagem" alt="Preview">
+                      <div class="image-overlay"><i class="fas fa-camera"></i> <span>Alterar</span></div>
+                    </div>
+                    <input type="file" id="prod-img" accept="image/*" onchange="previewImagem(this)">
+                  </div>
+                </div>
 
-              <div class="form-group">
-                <label>Nome do Produto</label>
-                <input type="text" id="prod-titulo" class="form-control" required>
+                <div class="modal-right-col">
+                  <div class="form-section">
+                    <label class="section-label">Dados Básicos</label>
+                    <div class="input-group">
+                      <label>Nome</label>
+                      <input type="text" id="prod-titulo" class="input-modern" required>
+                    </div>
+                    <div class="row-inputs">
+                      <div class="input-group">
+                        <label>Preço</label>
+                        <input type="number" step="0.01" id="prod-preco" class="input-modern" required>
+                      </div>
+                      <div class="input-group">
+                        <label>Categoria</label>
+                        <select id="prod-categoria" class="input-modern">
+                          <option value="">Geral</option>
+                          <option value="roupas">Roupas</option>
+                          <option value="acessorios">Acessórios</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="input-group">
+                      <label>Descrição</label>
+                      <textarea id="prod-descricao" class="input-modern" rows="2"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="form-section">
+                    <div class="section-header-small">
+                      <label class="section-label">Estoque / Variações</label>
+                      <button type="button" class="btn-small-add" onclick="adicionarVariacaoUI()">+ Adicionar</button>
+                    </div>
+                    <div class="variations-header">
+                      <span>Tam.</span> <span>Cor</span> <span>Qtd.</span> <span>Del</span>
+                    </div>
+                    <div id="lista-variacoes" class="variations-list"></div>
+                  </div>
+                </div>
               </div>
-
-              <div class="form-group">
-                <label>Preço (R$)</label>
-                <input type="number" step="0.01" id="prod-preco" class="form-control" required>
-              </div>
-
-              <div class="form-group">
-                <label>Imagem (URL ou Upload em breve)</label>
-                <input type="file" id="prod-img" class="form-control">
-              </div>
-
-              <div class="form-group" style="margin-top: 20px; text-align: right;">
-                <button type="submit" class="btn-primary">Salvar Produto</button>
+              <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="fecharModalProduto()">Cancelar</button>
+                <button type="submit" class="btn-confirm">Salvar</button>
               </div>
             </form>
           </div>
         </div>
-        </section>
 
         <section id="configuracoes" class="content-section" style="display: none">
           <div class="section-header">
-            <h3>Aparência da Loja</h3>
+            <h3>Identidade Visual</h3>
           </div>
-
           <div class="config-container">
-
             <div class="store-preview">
-              <div
-                style="background: rgba(0,0,0,0.8); height: 25px; width: 100%; display: flex; justify-content: flex-end; padding: 0 15px; align-items: center;">
-                <i class="fas fa-signal" style="color:white; font-size: 10px; margin-right:5px;"></i>
-                <i class="fas fa-battery-full" style="color:white; font-size: 10px;"></i>
-              </div>
-
+              <div style="background: #000; height: 25px; width: 100%;"></div>
               <div id="mock-header" class="mock-header" style="background-color: #000;">
-
-                <div class="mock-brand" onclick="document.getElementById('config-logo').click()"
-                  title="Clique para alterar logo">
-                  <span class="edit-hint">Alterar Logo</span>
+                <div class="mock-brand">
                   <img id="mock-logo-img" src="https://via.placeholder.com/50" class="mock-logo">
                   <span id="mock-name-text" class="mock-name">Sua Loja</span>
                 </div>
-
-                <div class="mock-cart-btn">
-                  <i class="fas fa-shopping-bag" style="color: white; font-size: 1.1rem;"></i>
-                </div>
+                <div class="mock-cart-btn"><i class="fas fa-shopping-bag" style="color:white;"></i></div>
               </div>
-
-              <div
-                style="padding: 20px; background: #f3f4f6; height: 150px; display: flex; flex-direction: column; gap: 10px;">
-                <div style="height: 80px; background: #e5e7eb; border-radius: 8px; width: 100%;"></div>
-                <div style="height: 20px; background: #e5e7eb; border-radius: 4px; width: 60%;"></div>
+              <div style="padding: 20px; background: #f3f4f6; height: 150px;">
+                <div style="height: 80px; background: #e5e7eb; border-radius: 8px;"></div>
               </div>
             </div>
 
             <div class="edit-panel">
-
               <input type="file" id="config-logo" accept="image/*" style="display: none;">
-
               <div class="edit-group">
                 <label>Nome da Loja</label>
                 <div style="display: flex; gap: 5px;">
-                  <input type="text" id="config-nome" class="form-control" placeholder="Nome da Loja">
+                  <input type="text" id="config-nome" class="form-control">
                   <button class="btn-primary" onclick="salvarCampo('nome')"><i class="fas fa-save"></i></button>
                 </div>
               </div>
-
               <div class="edit-group">
                 <label>Cor do Tema</label>
                 <div class="color-picker-wrapper">
-                  <input type="color" id="config-cor" style="width: 40px; height: 40px; border: none; cursor: pointer;">
-                  <span id="hex-label" style="font-family: monospace; color: #666;">#000000</span>
+                  <input type="color" id="config-cor">
+                  <span id="hex-label">#000000</span>
                   <button class="btn-primary" style="margin-left: auto;" onclick="salvarCampo('cor')">OK</button>
                 </div>
               </div>
-
               <div class="edit-group">
                 <label>WhatsApp</label>
                 <div style="display: flex; gap: 5px;">
-                  <input type="text" id="config-zap" class="form-control" placeholder="Ex: 55119999...">
+                  <input type="text" id="config-zap" class="form-control">
                   <button class="btn-primary" onclick="salvarCampo('whatsapp')"><i class="fas fa-save"></i></button>
                 </div>
               </div>
-
+              <div class="edit-group" style="grid-column: 1/-1;">
+                <button id="btn-upload-logo" class="btn-primary"
+                  onclick="document.getElementById('config-logo').click()" style="width: 100%;">
+                  <i class="fas fa-upload"></i> Alterar Logo da Loja
+                </button>
+              </div>
             </div>
           </div>
-        </section>
-
       </div>
-    </main>
-  </div>
+      </section>
 
+  </div>
+  </main>
+  </div>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="notifications.js"></script>
   <script src="admin.js"></script>
 </body>
 

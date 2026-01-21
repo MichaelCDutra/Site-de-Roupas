@@ -1,0 +1,230 @@
+/* =============================================================
+   1. SIDEBAR & TEMA SAAS (Super Admin)
+   ============================================================= */
+.saas-sidebar {
+    background: #0f172a !important; /* Slate 900 */
+    border-right: 1px solid #1e293b;
+}
+
+.saas-sidebar .logo {
+    color: #38bdf8; /* Azul claro ciano */
+}
+
+.badge-role {
+    background: #4f46e5;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.logout-item {
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 10px;
+}
+.logout-item a { color: #f87171 !important; }
+.logout-item a:hover { background: rgba(239, 68, 68, 0.1) !important; }
+
+/* =============================================================
+   2. TABELAS E STATUS
+   ============================================================= */
+.badge-ativo {
+    background: #d1fae5; color: #065f46;
+    padding: 4px 8px; border-radius: 6px;
+    font-size: 0.8rem; font-weight: 600;
+}
+
+.badge-bloqueado {
+    background: #fee2e2; color: #991b1b;
+    padding: 4px 8px; border-radius: 6px;
+    font-size: 0.8rem; font-weight: 600;
+}
+
+.loading {
+    padding: 20px;
+    color: #64748b;
+    font-style: italic;
+}
+
+/* =============================================================
+   3. MODAL (Correção de Fundo e Estrutura)
+   ============================================================= */
+.modal-overlay {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: #ffffff; /* FUNDO BRANCO IMPORTANTE */
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+
+.modal-header {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex; justify-content: space-between; align-items: center;
+    background: #fff;
+}
+
+#form-lojista {
+    padding: 20px;
+}
+
+/* =============================================================
+   4. STEPPER / WIZARD
+   ============================================================= */
+.modal-stepper {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+    padding: 0 10px;
+}
+
+.modal-stepper::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 20px; right: 20px;
+    height: 2px; background: #e5e7eb;
+    z-index: 0; transform: translateY(-50%);
+}
+
+.step-dot {
+    width: 35px; height: 35px;
+    background: #e5e7eb;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: #6b7280;
+    position: relative; z-index: 1;
+    transition: all 0.3s;
+    border: 3px solid #fff;
+}
+
+.step-dot.active {
+    background: #4f46e5; color: white;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    border-color: #fff;
+}
+.step-dot.completed {
+    background: #10b981; color: white;
+    border-color: #fff;
+}
+
+.step-content { display: none; animation: fadeIn 0.3s ease; }
+.step-content.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =============================================================
+   5. INPUTS E FOOTER
+   ============================================================= */
+.modal-footer-wizard {
+    display: flex; justify-content: space-between;
+    margin-top: 20px; padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.color-input-group {
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid #e5e7eb; padding: 5px;
+    border-radius: 6px; background: #fff;
+}
+.color-input-group input[type="color"] {
+    border: none; width: 40px; height: 40px;
+    cursor: pointer; background: none; padding: 0;
+}
+
+.input-modern {
+    width: 100%; padding: 10px;
+    border: 1px solid #e5e7eb; border-radius: 6px;
+    margin-top: 5px; background: #fff;
+}
+
+/* =============================================================
+   6. ESTILO DA ETAPA 3 (CARD DE REVISÃO) - O QUE ESTAVA FALTANDO
+   ============================================================= */
+.review-card {
+    background: #f8fafc; /* Cinza azulado bem claro */
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 10px;
+}
+
+.review-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; font-size: 0.95rem;
+}
+
+.review-label {
+    color: #64748b; font-weight: 500; display: flex; align-items: center; gap: 8px;
+}
+
+.review-value {
+    color: #1e293b; font-weight: 600; text-align: right;
+}
+
+.review-url {
+    color: #4f46e5; font-family: monospace;
+    background: #e0e7ff; padding: 2px 6px;
+    border-radius: 4px; font-size: 0.85rem;
+    word-break: break-all; /* Garante que URL longa não quebre o layout */
+}
+
+.review-divider {
+    height: 1px; background: #e2e8f0;
+    margin: 15px 0; border: none;
+}
+
+.color-preview-circle {
+    display: inline-block; width: 18px; height: 18px;
+    border-radius: 50%; border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #cbd5e1;
+    vertical-align: middle;
+}
+
+/* Botão Secundário (Voltar / Cancelar) */
+.btn-secondary {
+    background-color: #ffffff;
+    border: 1px solid #d1d5db; /* Borda cinza suave */
+    color: #4b5563; /* Texto cinza escuro */
+    padding: 10px 20px;
+    border-radius: 8px; /* Mesmo arredondamento do btn-primary */
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #f9fafb; /* Cinza bem clarinho ao passar o mouse */
+    border-color: #9ca3af;     /* Borda fica um pouco mais escura */
+    color: #1f2937;
+}
+
+.btn-secondary:active {
+    transform: translateY(1px); /* Efeito de clique */
+}

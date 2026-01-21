@@ -28,8 +28,33 @@ body {
     overflow: hidden; /* Evita scroll duplo com o main content */
 }
 
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: #4338ca; /* Um pouco mais escuro */
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
 /* =============================================================
-   2. LAYOUT E SIDEBAR
+   2. LAYOUT E SIDEBAR (CORRIGIDO)
    ============================================================= */
 .wrapper {
     display: flex;
@@ -42,21 +67,31 @@ body {
     color: var(--white);
     display: flex;
     flex-direction: column;
-    transition: var(--transition);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transição suave na largura */
     position: relative;
     z-index: 100;
+    overflow: hidden; /* IMPORTANTE: Impede que textos estourem se algo der errado */
 }
 
 .sidebar.collapsed {
     width: 80px;
 }
 
+/* Header do Menu */
 .sidebar-header {
     padding: 20px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-between; /* Padrão: Logo esq, Seta dir */
+    height: 70px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+/* Ajuste do Header quando encolhido */
+.sidebar.collapsed .sidebar-header {
+    justify-content: center; /* Centraliza tudo */
+    padding: 0;
 }
 
 .logo {
@@ -66,30 +101,73 @@ body {
     font-weight: 700;
     font-size: 1.2rem;
     white-space: nowrap;
+    overflow: hidden; /* Garante que o texto suma suavemente */
 }
 
-.sidebar.collapsed .logo span {
+/* Esconde o texto da Logo e do Menu quando encolhido */
+.sidebar.collapsed .logo span,
+.sidebar.collapsed .nav-links span,
+.sidebar.collapsed #btn-logout span { /* ADICIONADO: Esconde o texto "Sair" */
     display: none;
 }
 
+/* Botão de Encolher (<) */
 .collapse-btn {
     background: none;
     border: none;
     color: var(--white);
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 1rem;
     padding: 5px;
+    transition: transform 0.3s;
 }
 
+/* Gira a seta quando encolhido e centraliza itens */
+.sidebar.collapsed .collapse-btn {
+    transform: rotate(180deg); /* Seta aponta para a direita */
+    position: absolute;
+    bottom: 10px; /* Joga a seta para perto do footer ou ajusta posição */
+    right: 50%;
+    transform: translateX(50%) rotate(180deg);
+}
+
+/* Alternativa de Design para o Header Encolhido:
+   Muitas vezes, quando encolhe, mostramos SÓ a logo. 
+   A seta pode ir para baixo ou ficar sobreposta.
+   Neste ajuste simples, vamos apenas esconder a seta ou ajustar a logo.
+*/
+.sidebar.collapsed .sidebar-header {
+    position: relative;
+}
+.sidebar.collapsed .logo {
+    margin-right: 0;
+}
+.sidebar.collapsed .collapse-btn {
+    /* Ajuste fino para a seta não ficar em cima da logo */
+    position: static; 
+    margin-top: 10px; /* Se quiser empilhar */
+    transform: rotate(180deg);
+    display: none; /* Dica: Geralmente se esconde a seta ou coloca ela flutuando fora */
+}
+/* CORREÇÃO MELHORADA PRO HEADER: */
+.sidebar.collapsed .sidebar-header {
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}
+.sidebar.collapsed .collapse-btn {
+    display: block;
+    transform: rotate(180deg);
+}
+
+/* Links de Navegação */
 .nav-links {
     list-style: none;
     padding: 20px 10px;
     flex: 1;
 }
 
-.nav-links li {
-    margin-bottom: 8px;
-}
+.nav-links li { margin-bottom: 8px; }
 
 .nav-links a {
     text-decoration: none;
@@ -100,6 +178,13 @@ body {
     padding: 12px 15px;
     border-radius: 8px;
     transition: var(--transition);
+    white-space: nowrap; /* Texto não quebra linha */
+}
+
+/* Centraliza ícones quando encolhido */
+.sidebar.collapsed .nav-links a {
+    justify-content: center;
+    padding: 12px 0; /* Remove padding lateral para centralizar perfeito */
 }
 
 .nav-links li.active a, .nav-links a:hover {
@@ -110,12 +195,10 @@ body {
 .nav-links i {
     font-size: 1.2rem;
     min-width: 25px;
+    text-align: center; /* Garante alinhamento do ícone */
 }
 
-.sidebar.collapsed .nav-links span {
-    display: none;
-}
-
+/* Footer (Logout) */
 .sidebar-footer {
     padding: 10px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -131,12 +214,91 @@ body {
     padding: 12px 15px;
     border-radius: 8px;
     transition: var(--transition);
+    white-space: nowrap;
+}
+
+/* Centraliza botão Sair quando encolhido */
+.sidebar.collapsed #btn-logout {
+    justify-content: center;
+    padding: 12px 0;
 }
 
 #btn-logout:hover {
     background-color: rgba(248, 113, 113, 0.1);
     color: var(--danger);
 }
+/* =============================================================
+   CORREÇÃO DO HEADER DO MENU (LOGO E BOTÃO)
+   ============================================================= */
+
+/* 1. Estilo Padrão (Menu Aberto) */
+.sidebar-header {
+    height: 80px; /* Altura fixa para evitar quebras */
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Logo na esq, Botão na dir */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    overflow: hidden; /* Garante que nada saia da caixa */
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--white);
+    white-space: nowrap; /* Texto não quebra linha */
+}
+
+.collapse-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 8px;
+    border-radius: 5px;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.collapse-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+}
+
+/* 2. Estilo Encolhido (Menu Fechado) */
+.sidebar.collapsed .sidebar-header {
+    padding: 0; /* Remove padding lateral */
+    flex-direction: column; /* Empilha: Logo em cima, Botão embaixo */
+    justify-content: center; /* Centraliza verticalmente */
+    gap: 15px; /* Espaço entre a logo e o botão */
+}
+
+/* Ajuste da Logo quando fechado */
+.sidebar.collapsed .logo {
+    justify-content: center; /* Centraliza o ícone da logo */
+    width: 100%; /* Garante que o container ocupe a largura */
+}
+
+/* Esconde o texto, mantém o ícone */
+.sidebar.collapsed .logo span {
+    display: none;
+}
+
+/* Ajuste do Botão quando fechado */
+.sidebar.collapsed .collapse-btn {
+    transform: rotate(180deg); /* Gira a seta */
+    width: 30px; /* Tamanho fixo para o botão */
+    height: 30px;
+    margin: 0 auto; /* Centraliza horizontalmente */
+}
+
 
 /* =============================================================
    3. CONTEÚDO PRINCIPAL E TOP BAR
@@ -292,6 +454,153 @@ body {
 
 .btn-whatsapp { color: var(--success); font-size: 1.2rem; }
 
+/* Select de Status Personalizado */
+.status-select {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    outline: none;
+    appearance: none; /* Remove a seta padrão feia do navegador */
+    text-align: center;
+    width: 100%;
+    min-width: 100px;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Seta personalizada (hack com background image ou unicode) */
+.status-select {
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 8px;
+    padding-right: 25px; /* Espaço para a seta */
+}
+
+/* Cores Baseadas no Status */
+.status-AGUARDANDO {
+    background-color: #fef3c7; color: #92400e;
+}
+.status-PAGO {
+    background-color: #d1fae5; color: #065f46;
+}
+.status-ENVIADO {
+    background-color: #dbeafe; color: #1e40af;
+}
+.status-ENTREGUE {
+    background-color: #f3f4f6; color: #1f2937; border: 1px solid #d1d5db;
+}
+.status-CANCELADO {
+    background-color: #fee2e2; color: #991b1b;
+}
+
+.status-select:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+}
+.status-select:focus {
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+}
+
+/* =============================================================
+   ESTILOS DO PDV (PONTO DE VENDA)
+   ============================================================= */
+
+.pdv-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr; /* Esquerda menor, Direita (Carrinho) maior */
+    gap: 20px;
+    padding: 20px;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Lado Esquerdo */
+.pdv-left {
+    display: flex; flex-direction: column; gap: 20px;
+}
+.pdv-dica {
+    margin-top: 10px; font-size: 0.85rem; color: #6b7280;
+    background: #f3f4f6; padding: 10px; border-radius: 6px;
+}
+
+/* Autocomplete (Resultados da Busca) */
+.autocomplete-list {
+    position: absolute;
+    top: 100%; left: 0; width: 100%;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0 0 8px 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    display: none; /* Escondido por padrão */
+}
+.autocomplete-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.autocomplete-item:hover { background: #f9fafb; }
+.autocomplete-item img { width: 30px; height: 30px; border-radius: 4px; object-fit: cover; margin-right: 10px; }
+.item-info { display: flex; align-items: center; }
+
+/* Lado Direito (Carrinho) */
+.pdv-right {
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+
+.cart-header {
+    background: #e5e7eb;
+    padding: 10px 15px;
+    font-weight: 600; font-size: 0.85rem; color: #374151;
+    display: flex; gap: 10px;
+}
+
+.cart-items {
+    flex: 1; /* Ocupa o espaço livre */
+    overflow-y: auto;
+    padding: 10px;
+    background: white;
+}
+
+.cart-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #f3f4f6;
+    animation: fadeIn 0.2s;
+}
+
+/* Select de Tamanho dentro do carrinho */
+.cart-select {
+    width: 60px; padding: 4px; border-radius: 4px; border: 1px solid #d1d5db;
+}
+
+.cart-qty {
+    width: 50px; padding: 4px; text-align: center; border: 1px solid #d1d5db; border-radius: 4px;
+}
+
+.cart-footer {
+    padding: 20px; background: white; border-top: 1px solid #e5e7eb;
+}
+.cart-total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 1.5rem; font-weight: 700; color: #111827;
+    margin-bottom: 15px;
+}
+.empty-cart-msg {
+    text-align: center; color: #9ca3af; margin-top: 50px;
+}
+
 /* =============================================================
    6. PRODUTOS (GRID E CARDS)
    ============================================================= */
@@ -327,118 +636,199 @@ body {
     margin: 8px 0;
 }
 
+.form-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background-color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
 /* =============================================================
    7. MODAIS E FORMULÁRIOS
    ============================================================= */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
+/* Modal Largo e Centralizado */
+/* =============================================================
+   MODAL CORRIGIDO (FIXED HEADER/FOOTER & SCROLL)
+   ============================================================= */
+
+.modal-overlay {
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
-    z-index: 1000;
-}
-
-.modal-content {
-    background: var(--white);
-    width: 90%;
-    max-width: 550px;
-    margin: 50px auto;
-    padding: 30px;
-    border-radius: 16px;
-    max-height: 85vh;
-    overflow-y: auto;
-}
-
-.form-group { margin-bottom: 15px; }
-
-.form-control {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-top: 5px;
-}
-
-.btn-primary {
-    background: var(--primary-color);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-/* Lista de Configurações */
-.config-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.config-item {
-    background: var(--white);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.config-info {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    flex: 1; /* Ocupa o espaço restante */
-}
-
-.config-label {
-    font-size: 0.85rem;
-    color: var(--text-light);
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.config-value {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: var(--text-main);
-    min-height: 24px; /* Evita pulo se estiver vazio */
-}
-
-/* Utilitários de Estado */
-.hidden {
-    display: none !important;
-}
-
-.btn-icon {
-    background: rgba(79, 70, 229, 0.1);
-    color: var(--primary-color);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
+    display: none;
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+    z-index: 2000;
+    align-items: center; 
     justify-content: center;
-    font-size: 1.1rem;
 }
 
-.btn-icon:hover {
-    background: var(--primary-color);
-    color: white;
-}
-
-.edit-controls {
+.modal-large {
+    width: 900px;
+    max-width: 95%;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    /* CORREÇÃO 1: Flexbox vertical e altura fixa na tela */
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    height: 90vh; /* Ocupa 90% da altura da tela */
+    max-height: 90vh;
 }
 
+/* Header Fixo */
+.modal-header {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    flex-shrink: 0; /* Impede que o header encolha */
+    background: #fff;
+    z-index: 10;
+}
+
+/* CORREÇÃO 2: O Formulário deve preencher o espaço restante */
+#form-produto {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Cresce para ocupar o espaço entre header e footer */
+    overflow: hidden; /* Impede que o formulário estoure o modal */
+}
+
+/* CORREÇÃO 3: Apenas o conteúdo do meio rola (Scroll) */
+.modal-grid-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    padding: 2rem;
+    
+    /* Mágica do Scroll aqui */
+    overflow-y: auto; 
+    flex: 1; 
+}
+
+/* Footer Fixo (Botões sempre visíveis) */
+.modal-footer {
+    padding: 1.2rem 1.5rem;
+    border-top: 1px solid #eee;
+    background: #f9fafb;
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 10px;
+    flex-shrink: 0; /* Impede que o footer suma ou encolha */
+    z-index: 10;
+}
+
+/* --- Estilos Internos (Imagem, Inputs, etc) mantidos --- */
+
+.modal-left-col {
+    /* Removido o border-right em telas pequenas se precisar, mas ok por enquanto */
+    border-right: 1px solid #eee;
+    padding-right: 2rem;
+}
+
+.image-preview-container {
+    width: 100%;
+    height: 300px; /* Altura fixa para a imagem não esticar a tela */
+    background: #f3f4f6;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    border: 2px dashed #d1d5db;
+    display: flex; align-items: center; justify-content: center;
+}
+.image-preview-container img {
+    width: 100%; height: 100%; object-fit: cover;
+}
+.image-overlay {
+    position: absolute; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s;
+}
+.image-preview-container:hover .image-overlay { opacity: 1; }
+#prod-img { display: none; }
+
+.section-label {
+    display: block; font-size: 0.85rem; font-weight: 600; color: #6b7280;
+    text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px;
+}
+.input-modern {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid #e5e7eb; border-radius: 6px;
+    font-size: 0.95rem; margin-bottom: 15px;
+    transition: border 0.3s;
+}
+.input-modern:focus { border-color: #4f46e5; outline: none; }
+
+/* Grid de Inputs Lado a Lado */
+.row-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+/* Lista de Variações */
+.variations-header, .variation-row {
+    display: grid; 
+    grid-template-columns: 80px 1fr 80px 40px; /* Ajuste nas larguras */
+    gap: 10px; 
+    align-items: center;
+}
+.variations-header {
+    font-size: 0.75rem; font-weight: bold; color: #374151; margin-bottom: 5px; text-transform: uppercase;
+}
+.variation-row { margin-bottom: 10px; }
+
+.btn-trash {
+    background: #fee2e2; color: #ef4444; border: none; border-radius: 6px;
+    width: 36px; height: 36px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+}
+.btn-trash:hover { background: #fecaca; }
+
+.section-header-small {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; margin-top: 10px;
+}
+.btn-small-add {
+    background: #e0e7ff; color: #4f46e5; border: none; 
+    padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 600;
+}
+
+/* Botões do Footer */
+.btn-cancel { 
+    background: #fff; border: 1px solid #d1d5db; padding: 10px 20px; 
+    border-radius: 6px; cursor: pointer; font-weight: 500; color: #374151;
+}
+.btn-confirm { 
+    background: #4f46e5; color: white; border: none; padding: 10px 20px; 
+    border-radius: 6px; cursor: pointer; font-weight: 500;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.btn-confirm:hover { background: #4338ca; }
+
+.btn-close {
+    background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #9ca3af;
+}
+.btn-close:hover { color: #111827; }
+
+/* RESPONSIVIDADE (Para telas menores que o modal) */
+@media (max-width: 950px) {
+    .modal-grid-layout {
+        grid-template-columns: 1fr; /* Vira uma coluna só */
+        padding: 1.5rem;
+    }
+    .modal-left-col {
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        padding-right: 0;
+        padding-bottom: 1.5rem;
+    }
+}
 /* =============================================================
    LIVE PREVIEW (Visualização Estilo Site)
    ============================================================= */
@@ -575,3 +965,112 @@ body {
 .mock-brand:hover .edit-hint {
     opacity: 1;
 }
+
+/* Cards de Produtos Modernos */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsivo */
+    gap: 24px;
+    padding: 20px 0;
+}
+
+.product-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #f3f4f6;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+    border-color: #e5e7eb;
+}
+
+/* Imagem e Badge de Status */
+.card-image-wrapper {
+    position: relative;
+    height: 180px;
+    background: #f9fafb;
+    overflow: hidden;
+}
+.product-img {
+    width: 100%; height: 100%; object-fit: cover;
+}
+
+.stock-badge {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+    font-weight: 600;
+}
+.stock-badge.low { background: rgba(239, 68, 68, 0.9); } /* Vermelho se acabar */
+.stock-badge.good { background: rgba(16, 185, 129, 0.9); } /* Verde se tiver muito */
+
+/* Detalhes do Produto */
+.product-details {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Ocupa o resto do card */
+}
+
+.product-title {
+    font-size: 1rem; font-weight: 600; color: #1f2937;
+    margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.product-price {
+    font-size: 1.1rem; font-weight: 700; color: #4f46e5;
+    margin-bottom: 12px;
+}
+
+/* Área de Estoque por Tamanho */
+.stock-breakdown {
+    margin-top: auto; /* Empurra para o fundo se sobrar espaço */
+    padding-top: 12px;
+    border-top: 1px solid #f3f4f6;
+}
+.stock-label {
+    font-size: 0.75rem; color: #9ca3af; display: block; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.size-pills {
+    display: flex; flex-wrap: wrap; gap: 6px;
+}
+.size-pill {
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    border: 1px solid #e5e7eb;
+}
+.size-pill span { font-weight: 700; color: #111827; margin-left: 2px; }
+
+/* Ações (Editar/Excluir) */
+.card-actions {
+    display: flex; gap: 10px; margin-top: 15px;
+}
+.btn-card {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: none; cursor: pointer;
+    font-size: 0.85rem; font-weight: 500;
+    transition: background 0.2s;
+}
+.btn-edit { background: #eff6ff; color: #3b82f6; }
+.btn-edit:hover { background: #dbeafe; }
+.btn-delete { background: #fef2f2; color: #ef4444; }
+.btn-delete:hover { background: #fee2e2; }
