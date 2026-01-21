@@ -1,10 +1,10 @@
 const IS_LOCALHOST = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
-const API_BASE = IS_LOCALHOST
+const API_SAAS = IS_LOCALHOST
     ? "http://localhost:3000/api/saas"
     : "https://site-de-roupas-production.up.railway.app/api/saas";
 
-    
+
 const token = localStorage.getItem('token');
 
 // Elementos DOM Globais
