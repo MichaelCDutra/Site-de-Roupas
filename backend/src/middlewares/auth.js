@@ -13,21 +13,32 @@ function autenticarToken(req, res, next) {
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) return res.status(403).json({ error: "Token inválido ou expirado." });
-        req.usuario = decoded;
+
+        // AJUSTE CRÍTICO PARA UUID:
+        // Montamos o objeto explicitamente para garantir que estamos
+        // passando os IDs como Strings e não trazendo lixo do token (iat, exp).
+        req.usuario = {
+            id: decoded.id,         // UUID do Usuário (String)
+            email: decoded.email,
+            lojaId: decoded.lojaId  // UUID da Loja (String)
+        };
+
         next();
     });
 }
 
-// Middleware 2: Identificação da Loja pela URL (Vitrine)
+// Middleware 2: Identificação da Loja pela URL (Vitrine/Site Público)
 async function verificarLoja(req, res, next) {
-    const host = req.headers.host;
+    const host = req.headers.host; // Pega o domínio (ex: urban-style.com)
 
     try {
+        // Tenta achar por domínio personalizado OU pelo slug (subdomínio)
         const loja = await prisma.loja.findFirst({
             where: {
                 OR: [
                     { customDomain: host },
-                    { slug: host.split('.')[0] }
+                    // Lógica simples: se o host for "urban-style.railway.app", pega "urban-style"
+                    { slug: host.split('.')[0] } 
                 ]
             }
         });
@@ -37,11 +48,11 @@ async function verificarLoja(req, res, next) {
         req.lojaAtual = loja;
         next();
     } catch (error) {
+        console.error("Erro middleware loja:", error);
         res.status(500).json({ error: "Erro ao identificar a loja." });
     }
 }
 
-// CORREÇÃO DA EXPORTAÇÃO: No Node.js, para exportar várias coisas, usamos um objeto
 module.exports = {
     autenticarToken,
     verificarLoja

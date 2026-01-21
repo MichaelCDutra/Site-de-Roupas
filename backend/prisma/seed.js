@@ -1,91 +1,126 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const bcrypt = require('bcryptjs'); 
 
 async function main() {
-  console.log('🌱 Iniciando o Seed (Plantando dados)...');
+  console.log('🌱 Iniciando o Seed (SaaS + Loja Demo)...');
 
-  // 1. LIMPEZA TOTAL (Apaga dados antigos para evitar erros de duplicidade)
-  // A ordem é importante para respeitar as chaves estrangeiras
+  // =======================================================
+  // 1. LIMPEZA (Ordem importa por causa das Chaves Estrangeiras)
+  // =======================================================
   await prisma.itemVenda.deleteMany({});
   await prisma.venda.deleteMany({});
   await prisma.variacao.deleteMany({});
   await prisma.produto.deleteMany({});
   await prisma.categoria.deleteMany({});
-  await prisma.notificacao.deleteMany({});
+  // Apagar notificações se tiver
+  // await prisma.notificacao.deleteMany({}); 
   await prisma.loja.deleteMany({});
   await prisma.usuario.deleteMany({});
 
   console.log('🧹 Banco de dados limpo!');
 
-  // 2. CRIAR USUÁRIO (Sem o campo telefone, conforme seu schema)
-  const usuario = await prisma.usuario.create({
+  // Senha padrão para todos: 123456
+  const senhaForte = await bcrypt.hash('123456', 10);
+
+  // =======================================================
+  // 2. CRIAR SUPER ADMIN (Dono do SaaS)
+  // =======================================================
+  const admin = await prisma.usuario.create({
     data: {
-      nomeCompleto: 'Michael Admin',
-      email: 'admin@teste.com',
-      senhaHash: '123456', // Senha simples para teste
-      // telefone removido pois não existe no model Usuario
+      nome: 'Super Admin',
+      email: 'admin@saas.com',
+      senha: senhaForte,
+      role: 'SUPERADMIN',
+      ativo: true,
+      primeiroAcesso: false // Define como false para não pedir troca de senha no teste
     }
   });
 
-  console.log('👤 Usuário criado: admin@teste.com / 123456');
+  console.log(`👑 Super Admin criado: admin@saas.com (Senha: 123456)`);
 
-  // 3. CRIAR LOJA (Aqui sim temos whatsapp/telefone)
-  const loja = await prisma.loja.create({
+  // =======================================================
+  // 3. CRIAR LOJISTA (Dono da Loja "Urban Style")
+  // =======================================================
+  const lojista = await prisma.usuario.create({
     data: {
-      nomeLoja: 'Urban Style',
-      slug: 'urban-style',           // <--- SLUG PARA O TESTE
-      customDomain: 'urban-style.com', 
-      corPrimaria: '#8B5CF6',        // Roxo Neon
-      whatsapp: '5511999999999',     // O WhatsApp fica na Loja
-      usuarioId: usuario.id
-    }
+      nome: 'Michael Lojista',
+      email: 'lojista@teste.com',
+      senha: senhaForte,
+      role: 'LOJISTA',
+      ativo: true,
+      primeiroAcesso: false, // Define como false para facilitar seus testes
+      
+      // Cria a loja vinculada a este usuário
+      loja: {
+        create: {
+          nomeLoja: 'Urban Style',
+          slug: 'urban-style',
+          customDomain: null, // Sem domínio por enquanto
+          corPrimaria: '#4f46e5', // Roxo índigo
+          whatsapp: '5511999999999'
+        }
+      }
+    },
+    include: { loja: true }
   });
 
-  console.log(`🏪 Loja criada: ${loja.nomeLoja} (Slug: ${loja.slug})`);
+  console.log(`🏪 Lojista criado: lojista@teste.com (Senha: 123456)`);
+  console.log(`   🔗 Loja URL (Simulada): http://localhost:3000/loja/${lojista.loja.slug}`);
+  
+  const lojaId = lojista.loja.id;
 
-  // 4. CRIAR CATEGORIA
+  // =======================================================
+  // 4. CRIAR CATEGORIA NA LOJA
+  // =======================================================
   const catRoupas = await prisma.categoria.create({
-    data: { nome: 'Roupas', lojaId: loja.id }
+    data: { nome: 'Roupas', lojaId: lojaId }
   });
 
-  // 5. CRIAR PRODUTOS COM VARIAÇÕES
-  // Produto 1
+  const catAcessorios = await prisma.categoria.create({
+    data: { nome: 'Acessórios', lojaId: lojaId }
+  });
+
+  // =======================================================
+  // 5. CRIAR PRODUTOS NA LOJA
+  // =======================================================
   await prisma.produto.create({
     data: {
       titulo: 'Camiseta Oversized Tech',
-      descricao: 'Algodão egípcio com corte moderno.',
+      descricao: 'Algodão egípcio de alta qualidade, corte moderno.',
       preco: 129.90,
       ativo: true,
-      lojaId: loja.id,
+      lojaId: lojaId,
       categoriaId: catRoupas.id,
+      image: 'https://via.placeholder.com/400x400?text=Camiseta+Tech', // Imagem placeholder
       variacoes: {
         create: [
           { tamanho: 'P', quantidade: 10, cor: 'Preto' },
           { tamanho: 'M', quantidade: 5, cor: 'Preto' },
-          { tamanho: 'G', quantidade: 2, cor: 'Preto' }
+          { tamanho: 'G', quantidade: 0, cor: 'Preto' } // Teste de sem estoque
         ]
       }
     }
   });
 
-  // Produto 2
   await prisma.produto.create({
     data: {
       titulo: 'Boné Developer',
-      descricao: 'Boné aba curva com logo bordado.',
+      descricao: 'Boné aba curva com bordado 3D minimalista.',
       preco: 59.90,
       ativo: true,
-      lojaId: loja.id,
-      categoriaId: catRoupas.id,
+      lojaId: lojaId,
+      categoriaId: catAcessorios.id,
+      image: 'https://via.placeholder.com/400x400?text=Bone+Dev',
       variacoes: {
         create: [
-          { tamanho: 'U', quantidade: 50, cor: 'Cinza' }
+          { tamanho: 'U', quantidade: 50, cor: 'Cinza Escuro' }
         ]
       }
     }
   });
 
-  console.log('📦 Produtos criados com sucesso!');
+  console.log('✅ Seed finalizado com sucesso!');
 }
 
 main()

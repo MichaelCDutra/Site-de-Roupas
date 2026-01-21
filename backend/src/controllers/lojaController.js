@@ -2,15 +2,11 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 module.exports = {
-  // --- 1. FUNÇÕES DO PAINEL ADMIN (JÁ EXISTENTES) ---
-
-  // Buscar configurações para o Lojista editar
+  // --- 1. BUSCAR CONFIGURAÇÕES ---
   async buscarConfig(req, res) {
     try {
-      const lojaId = req.usuario.lojaId;
-      const loja = await prisma.loja.findUnique({
-        where: { id: lojaId }
-      });
+      const usuarioId = req.usuario.id; 
+      const loja = await prisma.loja.findUnique({ where: { usuarioId } });
 
       if (!loja) return res.status(404).json({ error: "Loja não encontrada" });
 
@@ -19,7 +15,6 @@ module.exports = {
         whatsapp: loja.whatsapp,
         corPrimaria: loja.corPrimaria,
         logoUrl: loja.logoUrl,
-        // Adicionamos o domínio customizado aqui também para o lojista ver
         customDomain: loja.customDomain 
       });
     } catch (error) {
@@ -28,27 +23,33 @@ module.exports = {
     }
   },
 
-  // Salvar configurações do Painel
+  // --- 2. ATUALIZAR CONFIGURAÇÕES (CORRIGIDO) ---
   async atualizarConfig(req, res) {
     try {
-      const lojaId = req.usuario.lojaId;
-      // Adicionei customDomain aqui caso você crie o campo no form depois
+      const usuarioId = req.usuario.id;
+      
+      // 1. Busca a loja
+      const loja = await prisma.loja.findUnique({ where: { usuarioId } });
+      if (!loja) return res.status(404).json({ error: "Loja não encontrada." });
+
+      // 2. Monta objeto SÓ com o que foi enviado (Evita apagar dados sem querer)
       const { nomeLoja, whatsapp, corPrimaria, customDomain } = req.body; 
+      
+      let dados = {};
+      if (nomeLoja) dados.nomeLoja = nomeLoja;
+      if (whatsapp) dados.whatsapp = whatsapp;
+      if (corPrimaria) dados.corPrimaria = corPrimaria;
+      if (customDomain !== undefined) dados.customDomain = customDomain;
 
-      let dadosParaAtualizar = {
-        nomeLoja,
-        whatsapp,
-        corPrimaria,
-        customDomain // Salva o domínio (ex: meudominio.com)
-      };
-
-      if (req.file) {
-        dadosParaAtualizar.logoUrl = req.file.path;
+      // 3. Se tiver imagem nova, adiciona
+      if (req.file && req.file.path) {
+        dados.logoUrl = req.file.path;
       }
 
+      // 4. Atualiza no banco
       const lojaAtualizada = await prisma.loja.update({
-        where: { id: lojaId },
-        data: dadosParaAtualizar
+        where: { id: loja.id },
+        data: dados
       });
 
       res.json(lojaAtualizada);
@@ -58,60 +59,34 @@ module.exports = {
     }
   },
 
-  // --- 2. NOVA API PÚBLICA (PARA O SITE DO CLIENTE) ---
-  
+  // --- 3. API PÚBLICA (VITRINE) ---
   async dadosDaLoja(req, res) {
     try {
-      // O site externo envia o domínio via Header ou Query String
       const dominioRecebido = req.headers['x-loja-dominio'] || req.query.dominio;
+      if (!dominioRecebido) return res.status(400).json({ error: "Domínio ausente." });
 
-      if (!dominioRecebido) {
-        return res.status(400).json({ error: "Domínio não informado." });
-      }
+      const dominioLimpo = dominioRecebido.replace(/(^\w+:|^)\/\//, '').replace('www.', '').replace(/\/$/, '');
 
-      // Limpeza do domínio (remove http://, https://, www. e barras no final)
-      // Ex: "https://www.meusite.com/" vira "meusite.com"
-      const dominioLimpo = dominioRecebido
-        .replace(/(^\w+:|^)\/\//, '')
-        .replace('www.', '')
-        .replace(/\/$/, '');
-
-      console.log("🔍 Buscando loja para:", dominioLimpo);
-
-      // Busca a loja pelo Domínio Customizado OU pelo Slug
       const loja = await prisma.loja.findFirst({
         where: {
-          OR: [
-            { customDomain: dominioLimpo },
-            { slug: dominioLimpo }
-          ]
+          OR: [ { customDomain: dominioLimpo }, { slug: dominioLimpo } ]
         },
-        include: {
-          // Já trazemos os produtos para a vitrine não precisar fazer 2 chamadas
-          produtos: {
-            where: { ativo: true } // Apenas produtos ativos
-          }
-        }
+        include: { produtos: { where: { ativo: true } } }
       });
 
-      if (!loja) {
-        return res.status(404).json({ error: "Loja não encontrada para este domínio." });
-      }
+      if (!loja) return res.status(404).json({ error: "Loja não encontrada." });
 
-      // Retorna o JSON pronto para o site externo consumir
       res.json({
         identidade: {
-          nome: loja.nomeLoja,
-          cor: loja.corPrimaria,
-          logo: loja.logoUrl,
+          nomeLoja: loja.nomeLoja,
+          corPrimaria: loja.corPrimaria,
+          logoUrl: loja.logoUrl,
           whatsapp: loja.whatsapp
         },
         produtos: loja.produtos
       });
-
     } catch (error) {
-      console.error("Erro na API Pública:", error);
-      res.status(500).json({ error: "Erro interno ao buscar dados da loja." });
+      res.status(500).json({ error: "Erro ao buscar dados." });
     }
   }
 };

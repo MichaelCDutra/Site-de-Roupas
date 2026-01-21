@@ -4,11 +4,20 @@ const prisma = new PrismaClient();
 module.exports = {
   async buscarResumo(req, res) {
     try {
-      const lojaId = req.usuario.lojaId;
+      // 1. CORREÇÃO: Busca a loja pelo ID do usuário logado
+      const loja = await prisma.loja.findFirst({
+        where: { usuarioId: req.usuario.id } // Usa o ID do token
+      });
+
+      if (!loja) {
+        return res.status(404).json({ error: "Loja não encontrada" });
+      }
+
+      const lojaId = loja.id;
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
 
-      // 1. Total de Vendas no Mês (Faturamento)
+      // 1. Total de Vendas no Mês
       const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
       const vendasMes = await prisma.venda.aggregate({
         where: {
@@ -27,11 +36,11 @@ module.exports = {
         }
       });
 
-      // 3. Alerta de Estoque Baixo (Produtos com menos de 5 unidades em algum tamanho)
+      // 3. Alerta de Estoque Baixo
       const estoqueBaixo = await prisma.variacao.count({
         where: {
           produto: { lojaId: lojaId },
-          quantidade: { lt: 5 } // lt = Less Than (menor que)
+          quantidade: { lt: 5 }
         }
       });
 

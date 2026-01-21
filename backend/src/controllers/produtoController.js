@@ -1,240 +1,207 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-// Mantemos sua função de conversão de preço
+// Helper de Preço
 function converterPreco(valor) {
   if (!valor) return 0;
   if (typeof valor === "number") return valor;
   let str = String(valor).replace("R$", "").trim();
-  if (str.includes(",")) {
-    str = str.replace(/\./g, "").replace(",", ".");
-  }
+  if (str.includes(",")) str = str.replace(/\./g, "").replace(",", ".");
   return parseFloat(str);
 }
 
+// Helper de Loja (Alterado para findFirst para evitar erros de constraint)
+async function pegarLojaDoUsuario(usuarioId) {
+  const loja = await prisma.loja.findFirst({ where: { usuarioId } });
+  if (!loja) throw new Error("Usuário sem loja vinculada.");
+  return loja.id;
+}
+
 module.exports = {
-  // --- LISTAR (Admin) ---
-  // Agora incluímos as variações para o lojista ver o estoque de cada tamanho
+  // --- LISTAR ---
   async listarAdmin(req, res) {
     try {
+      const lojaId = await pegarLojaDoUsuario(req.usuario.id);
       const produtos = await prisma.produto.findMany({
-        where: { lojaId: req.usuario.lojaId },
-        include: { 
-          categoria: true,
-          variacoes: true // Traz a grade de tamanhos
-        },
-        orderBy: { id: "desc" },
+        where: { lojaId },
+        include: { categoria: true, variacoes: true },
+        orderBy: { titulo: "asc" },
       });
       res.json(produtos);
-    } catch (error) {
-      console.error("Erro listarAdmin:", error);
-      res.status(500).json({ error: "Erro ao buscar produtos" });
+    } catch (error) { 
+        console.error(error);
+        res.status(500).json({ error: "Erro ao listar." }); 
     }
   },
 
-  // --- BUSCAR UM ---
+  // --- BUSCAR ID ---
   async buscarPorId(req, res) {
     try {
       const { id } = req.params;
-      const produto = await prisma.produto.findUnique({
-        where: { id: parseInt(id) },
-        include: { 
-          categoria: true,
-          variacoes: true // Importante para o site mostrar tamanhos disponíveis
-        },
+      let whereClause = { id };
+      // Se tiver usuário logado, filtra pela loja dele (segurança)
+      if(req.usuario) {
+          try {
+             whereClause.lojaId = await pegarLojaDoUsuario(req.usuario.id);
+          } catch(e) {
+             // Se falhar a loja, não trava, só não filtra (ex: super admin)
+          }
+      }
+      
+      const produto = await prisma.produto.findFirst({
+        where: whereClause,
+        include: { categoria: true, variacoes: true },
       });
-
-      if (!produto) return res.status(404).json({ mensagem: "Produto não encontrado" });
+      if (!produto) return res.status(404).json({ error: "Produto não encontrado." });
       res.json(produto);
-    } catch (err) {
-      res.status(500).json({ mensagem: "Erro ao buscar produto" });
-    }
+    } catch (err) { res.status(500).json({ error: "Erro ao buscar." }); }
   },
 
-  // --- CRIAR PRODUTO ---
-  // ... (mantenha o início do arquivo igual)
-
-  // --- CRIAR PRODUTO ---
-  // --- CRIAR PRODUTO ---
+  // --- CRIAR ---
   async criar(req, res) {
-    console.log("--- 🚀 Iniciando Criação de Produto ---");
-    console.time("⏱️ Tempo Total");
-
     try {
       const { titulo, descricao, preco, categoria, variacoes } = req.body;
-      const lojaId = req.usuario.lojaId;
+      const lojaId = await pegarLojaDoUsuario(req.usuario.id);
 
-      console.time("🖼️ Processamento de Imagem");
-      const imagemUrl = req.file ? req.file.path : null;
-      console.timeEnd("🖼️ Processamento de Imagem");
+      // CORREÇÃO IMAGEM: Gera URL http://localhost... em vez de caminho C:\...
+      let imagemUrl = null;
+      if (req.file) {
+          // Se estiver usando Cloudinary, req.file.path é a URL. 
+          // Se estiver usando Local, precisamos montar a URL.
+          if(req.file.path && req.file.path.startsWith('http')) {
+              imagemUrl = req.file.path; 
+          } else {
+              imagemUrl = `http://localhost:3000/img/${req.file.filename}`;
+          }
+      }
 
       const precoFinal = converterPreco(preco);
       
-      // DECLARAÇÃO CORRETA DA CATEGORIA
-      let catId = null;
-      if (categoria && categoria !== "" && categoria !== "null") {
-        catId = parseInt(categoria);
+      let catConnect = undefined;
+      if (categoria && categoria !== "null" && categoria !== "") {
+        catConnect = { connect: { id: categoria } };
       }
 
-      // Tratamento da grade de tamanhos
       let gradeEstoque = [];
       if (variacoes) {
-        try {
-          gradeEstoque = typeof variacoes === 'string' ? JSON.parse(variacoes) : variacoes;
-        } catch (e) {
-          console.error("Erro no JSON de variacoes:", e);
-        }
+        try { gradeEstoque = typeof variacoes === 'string' ? JSON.parse(variacoes) : variacoes; } catch (e) {}
       }
 
-      console.time("🚀 Conexão e Gravação Railway (Prisma)");
       const novoProduto = await prisma.produto.create({
         data: {
-          titulo, 
-          descricao, 
+          titulo, descricao, 
           preco: precoFinal,
           image: imagemUrl,
           ativo: true,
           loja: { connect: { id: lojaId } },
-          // AQUI ESTAVA O ERRO: Agora catId está definido corretamente
-          ...(catId && { categoria: { connect: { id: catId } } }),
+          categoria: catConnect,
           variacoes: {
             create: gradeEstoque.map(v => ({
               tamanho: v.tamanho,
               quantidade: parseInt(v.quantidade) || 0,
-              cor: v.cor || null
+              cor: v.cor
             }))
           }
         },
         include: { variacoes: true }
       });
-      console.timeEnd("🚀 Conexão e Gravação Railway (Prisma)");
 
-      console.timeEnd("⏱️ Tempo Total");
       res.status(201).json(novoProduto);
 
     } catch (err) {
-      // Limpa os timers se der erro para não dar Warning no terminal
-      try { console.timeEnd("🚀 Conexão e Gravação Railway (Prisma)"); } catch (e) {}
-      console.timeEnd("⏱️ Tempo Total");
-      
-      console.error("❌ Erro detalhado no terminal:", err);
-      res.status(500).json({ error: "Erro interno ao criar produto." });
+      console.error("❌ Erro ao criar:", err);
+      res.status(500).json({ error: "Erro ao criar produto." });
     }
   },
 
-  // --- EDITAR PRODUTO ---
+  // --- EDITAR ---
   async editar(req, res) {
-    console.log(`--- Editando Produto ID: ${req.params.id} ---`);
-    console.time("⏱️ Tempo Total Edição");
-
     try {
       const { id } = req.params;
-      const lojaId = req.usuario.lojaId;
+      const lojaId = await pegarLojaDoUsuario(req.usuario.id);
       const { titulo, descricao, preco, categoria, variacoes } = req.body;
 
-      console.time("🔍 Verificação de Permissão");
-      const existe = await prisma.produto.findFirst({
-        where: { id: parseInt(id), lojaId: lojaId },
-      });
-      console.timeEnd("🔍 Verificação de Permissão");
-
+      const existe = await prisma.produto.findFirst({ where: { id, lojaId } });
       if (!existe) return res.status(403).json({ error: "Sem permissão." });
 
       const precoFinal = converterPreco(preco);
-      const gradeEstoque = variacoes ? JSON.parse(variacoes) : [];
+      
+      let catUpdate = {};
+      if (categoria && categoria !== "null" && categoria !== "") {
+          catUpdate = { connect: { id: categoria } };
+      } else {
+          catUpdate = { disconnect: true };
+      }
 
-      console.time("🔄 Update no Banco (Railway)");
-      const atualizado = await prisma.produto.update({
-        where: { id: parseInt(id) },
-        data: {
-          titulo, 
-          descricao, 
-          preco: precoFinal,
-          image: req.file ? req.file.path : undefined,
-          variacoes: {
-            deleteMany: {}, 
-            create: gradeEstoque.map(v => ({
-              tamanho: v.tamanho,
-              quantidade: parseInt(v.quantidade) || 0,
-              cor: v.cor || null
-            }))
+      const dadosUpdate = {
+        titulo, descricao, 
+        preco: precoFinal,
+        categoria: catUpdate,
+      };
+
+      // CORREÇÃO IMAGEM NA EDIÇÃO
+      if (req.file) {
+          if(req.file.path && req.file.path.startsWith('http')) {
+              dadosUpdate.image = req.file.path; 
+          } else {
+              dadosUpdate.image = `http://localhost:3000/img/${req.file.filename}`;
           }
-        },
+      }
+
+      if (variacoes) {
+        let grade = [];
+        try { grade = typeof variacoes === 'string' ? JSON.parse(variacoes) : variacoes; } catch(e){}
+        
+        dadosUpdate.variacoes = {
+            deleteMany: {},
+            create: grade.map(v => ({
+                tamanho: v.tamanho,
+                quantidade: parseInt(v.quantidade) || 0,
+                cor: v.cor
+            }))
+        };
+      }
+
+      const atualizado = await prisma.produto.update({
+        where: { id },
+        data: dadosUpdate,
         include: { variacoes: true }
       });
-      console.timeEnd("🔄 Update no Banco (Railway)");
 
-      console.timeEnd("⏱️ Tempo Total Edição");
       res.json(atualizado);
     } catch (err) {
-      console.timeEnd("⏱️ Tempo Total Edição");
-      console.error("❌ Erro ao EDITAR:", err);
-      res.status(500).json({ error: "Erro interno ao atualizar." });
+      console.error("❌ Erro editar:", err);
+      res.status(500).json({ error: "Erro ao atualizar." });
     }
   },
 
-  // --- EXCLUIR PRODUTO ---
-  async excluir(req, res) {
-    try {
-      const { id } = req.params;
-      const lojaId = req.usuario.lojaId;
+  // --- OUTROS ---
+  async alternarStatus(req, res) {
+      try {
+        const { id } = req.params;
+        const lojaId = await pegarLojaDoUsuario(req.usuario.id);
+        
+        // Verifica se pertence à loja
+        const p = await prisma.produto.findFirst({ where: { id, lojaId } });
+        if (!p) return res.status(403).json({ error: "Sem permissão." });
+        
+        // Tenta excluir (pode falhar se tiver vendas)
+        try {
+            await prisma.produto.delete({ where: { id } });
+            res.json({ message: "Produto removido." });
+        } catch(e) {
+            // Se falhar exclusão física, desativa
+            await prisma.produto.update({ where: {id}, data: { ativo: !p.ativo }});
+            res.json({ message: "Status do produto alterado." });
+        }
+      } catch (err) { res.status(500).json({ error: err.message }); }
+    },
 
-      // Verifica se o produto é desta loja
-      const produto = await prisma.produto.findFirst({
-        where: { id: parseInt(id), lojaId: lojaId }
-      });
-
-      if (!produto) return res.status(403).json({ error: "Sem permissão." });
-
-      // Tenta deletar (pode falhar se já tiver vendas, nesse caso o ideal seria inativar)
-      await prisma.produto.delete({
-        where: { id: parseInt(id) }
-      });
-
-      res.json({ message: "Produto excluído com sucesso" });
-    } catch (err) {
-      console.error("Erro ao excluir:", err);
-      // Se der erro de chave estrangeira (já tem vendas), avisa o user
-      if (err.code === 'P2003') {
-         return res.status(400).json({ error: "Não é possível excluir produtos que já têm vendas. Tente desativá-lo." });
-      }
-      res.status(500).json({ error: "Erro interno ao excluir." });
-    }
-  },
-
-  // --- LISTAR CATEGORIAS (Mantido) ---
   async listarCategorias(req, res) {
     try {
-      const categorias = await prisma.categoria.findMany({
-        where: { lojaId: req.usuario.lojaId },
-        orderBy: { nome: "asc" },
-      });
-      res.json(categorias);
-    } catch (error) {
-      res.status(500).json({ error: "Erro ao buscar categorias" });
-    }
-  },
-
-  // --- ALTERAR STATUS (Mantido) ---
-  async alternarStatus(req, res) {
-    try {
-      const { id } = req.params;
-      const lojaId = req.usuario.lojaId;
-      const produto = await prisma.produto.findFirst({
-        where: { id: parseInt(id), lojaId: lojaId },
-      });
-
-      if (!produto) return res.status(403).json({ error: "Sem permissão." });
-
-      await prisma.produto.update({
-        where: { id: parseInt(id) },
-        data: { ativo: !produto.ativo },
-      });
-
-      res.json({ msg: "Status alterado!" });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
+      const lojaId = await pegarLojaDoUsuario(req.usuario.id);
+      const cats = await prisma.categoria.findMany({ where: { lojaId }, orderBy: { nome: "asc" } });
+      res.json(cats);
+    } catch (error) { res.status(500).json({ error: "Erro categorias" }); }
   }
 };
-

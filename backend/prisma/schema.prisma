@@ -9,27 +9,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 1. Usuário (Dono da conta)
+// 1. Usuário (Dono da conta / Lojista / SuperAdmin)
 model Usuario {
-  id           Int      @id @default(autoincrement())
-  nomeCompleto String
-  email        String   @unique
-  senhaHash    String
-  dataCriacao  DateTime @default(now())
-  lojas        Loja[]
+  id        String   @id @default(uuid())
+  nome      String   // Ajustado para bater com o controller
+  email     String   @unique
+  senha     String   // Ajustado para bater com o controller
+  role      String   @default("LOJISTA") // "LOJISTA" ou "SUPERADMIN"
+  ativo     Boolean  @default(true)      // Bloqueio de acesso
+
+  primeiroAcesso Boolean @default(true)
+  
+  createdAt DateTime @default(now())     // Ajustado para bater com o controller
+  updatedAt DateTime @updatedAt
+  // Relação 1-1: Um usuário tem uma única loja (no modelo SaaS simples)
+  loja      Loja?    
 }
 
 model Loja {
-  id           Int       @id @default(autoincrement())
+  id           String   @id @default(uuid())
   nomeLoja     String
-  slug         String    @unique 
-  customDomain String?   @unique 
-  corPrimaria  String    @default("#000000") 
+  slug         String   @unique 
+  customDomain String?  @unique 
+  corPrimaria  String   @default("#000000") 
   logoUrl      String?   
   whatsapp     String?   
   
-  usuarioId    Int
-  usuario      Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId    String   @unique // @unique garante a relação 1-to-1
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
   produtos     Produto[]
   categorias   Categoria[]
   vendas       Venda[]
@@ -38,89 +46,86 @@ model Loja {
 
 // 3. Categorias
 model Categoria {
-  id      Int      @id @default(autoincrement())
+  id      String  @id @default(uuid())
   nome    String
-  ativa   Boolean  @default(true)
+  ativa   Boolean @default(true)
   
-  lojaId  Int
-  loja    Loja     @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId  String
+  loja    Loja    @relation(fields: [lojaId], references: [id], onDelete: Cascade)
   
   produtos Produto[]
 }
 
-// 4. Produtos (Ajustado para Inventário por Grade)
+// 4. Produtos
 model Produto {
-  id          Int       @id @default(autoincrement())
+  id          String   @id @default(uuid())
   titulo      String
-  descricao   String?   @db.Text
-  preco       Decimal   @db.Decimal(10, 2)
+  descricao   String?  @db.Text
+  preco       Decimal  @db.Decimal(10, 2)
   image       String?
-  ativo       Boolean   @default(true)
+  ativo       Boolean  @default(true)
   
-  // Relacionamento com a Grade (Tamanhos/Cores/Estoque)
   variacoes   Variacao[]
 
-  lojaId      Int
-  loja        Loja      @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId      String
+  loja        Loja     @relation(fields: [lojaId], references: [id], onDelete: Cascade)
 
-  categoriaId Int?
+  categoriaId String? 
   categoria   Categoria? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
 
   itensVenda  ItemVenda[] 
 }
 
-// NOVO: 4.1 Grade de Estoque (Variações de Tamanho/Cor)
+// 4.1 Grade de Estoque
 model Variacao {
-  id         Int      @id @default(autoincrement())
-  tamanho    String   // P, M, G, GG, 38, 40...
-  cor        String?  // Opcional: Azul, Branco, Estampado...
-  quantidade Int      @default(0) // Quantidade específica deste tamanho
+  id         String  @id @default(uuid())
+  tamanho    String  
+  cor        String? 
+  quantidade Int     @default(0)
 
-  produtoId  Int
-  produto    Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  produtoId  String
+  produto    Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
 }
 
 // 5. Vendas
 model Venda {
-  id              Int      @id @default(autoincrement())
+  id              String      @id @default(uuid())
   clienteNome     String?
   clienteWhatsapp String?
-  totalVenda      Decimal  @db.Decimal(10, 2)
+  totalVenda      Decimal     @db.Decimal(10, 2)
   status          StatusVenda @default(AGUARDANDO)
-  dataVenda       DateTime @default(now())
+  dataVenda       DateTime    @default(now())
 
-  lojaId          Int
-  loja            Loja     @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId          String
+  loja            Loja        @relation(fields: [lojaId], references: [id], onDelete: Cascade)
 
   itens           ItemVenda[]
 }
 
 // 6. Itens da Venda
 model ItemVenda {
-  id              Int      @id @default(autoincrement())
-  quantidade      Int
-  precoNoMomento  Decimal  @db.Decimal(10, 2)
-  
-  // Opcional: Salvar qual tamanho foi vendido para histórico
-  tamanhoVendido  String?
+  id             String   @id @default(uuid())
+  quantidade     Int
+  precoNoMomento Decimal  @db.Decimal(10, 2)
+  tamanhoVendido String?
 
-  vendaId         Int
-  venda           Venda    @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  vendaId        String
+  venda          Venda    @relation(fields: [vendaId], references: [id], onDelete: Cascade)
 
-  produtoId       Int?
-  produto         Produto? @relation(fields: [produtoId], references: [id])
+  produtoId      String?
+  produto        Produto? @relation(fields: [produtoId], references: [id])
 }
 
 // 7. Notificações
 model Notificacao {
-  id          Int      @id @default(autoincrement())
+  id          String          @id @default(uuid())
   mensagem    String
-  lida        Boolean  @default(false)
+  lida        Boolean         @default(false)
   tipo        TipoNotificacao @default(SISTEMA)
-  dataCriacao DateTime @default(now())
+  dataCriacao DateTime        @default(now())
 
-  lojaId      Int
-  loja        Loja     @relation(fields: [lojaId], references: [id], onDelete: Cascade)
+  lojaId      String
+  loja        Loja            @relation(fields: [lojaId], references: [id], onDelete: Cascade)
 }
 
 enum StatusVenda {
@@ -128,6 +133,7 @@ enum StatusVenda {
   PAGO
   ENVIADO
   CANCELADO
+  ENTREGUE
 }
 
 enum TipoNotificacao {
