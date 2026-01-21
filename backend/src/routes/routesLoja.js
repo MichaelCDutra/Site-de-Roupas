@@ -12,7 +12,7 @@ const publicController = require('../controllers/publicController');
 // =============================================================
 
 router.get('/dados', lojaController.dadosDaLoja);
-router.get("/vitrine/:slug", publicController.buscarLojaPorSlug);
+router.get("/vitrine/dados", publicController.buscarLojaPublica);
 router.post('/checkout', vendaController.finalizarPedido);
 
 module.exports = router;
