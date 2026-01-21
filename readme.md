@@ -1,4 +1,6 @@
-# 🛍️ SaaS Store – Plataforma SaaS Multi-Tenant para Lojas de Roupas
+🇧🇷 Read this README in Portuguese: [README.pt-BR.md](README.pt-BR.md)
+
+# 🛍️ SaaS Store – Multi-Tenant SaaS Platform for Clothing Stores
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js\&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-4.x-000000?logo=express\&logoColor=white)](https://expressjs.com/)
@@ -6,136 +8,137 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql\&logoColor=white)](https://www.mysql.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**SaaS Store** é uma plataforma **multi-tenant** pensada para transformar lojas físicas ou online de roupas em um **SaaS real**, permitindo que vários lojistas utilizem a mesma infraestrutura com total isolamento de dados.
+**SaaS Store** is a **multi-tenant SaaS platform** designed to transform physical or online clothing stores into a **real SaaS product**, allowing multiple merchants to share the same infrastructure with full data isolation.
 
-Cada lojista possui:
+Each merchant has:
 
-* Sua própria vitrine personalizada
-* Painel administrativo completo
-* PDV (frente de caixa)
-* Pedidos enviados automaticamente para o WhatsApp
+* Their own customized storefront
+* A complete administrative dashboard
+* POS (point of sale)
+* Orders automatically sent to WhatsApp
 
-Tudo isso com um stack simples, performático e fácil de manter.
-
----
-
-## ✨ Principais Diferenciais
-
-* Arquitetura **multi-tenant** com isolamento por lojista
-* Personalização da loja em tempo real (cores + logo)
-* PDV simples e rápido para vendas presenciais
-* Checkout via **WhatsApp** (sem gateways complexos)
-* Bloqueio instantâneo de lojistas inadimplentes
-* Frontend leve: **HTML + CSS + JavaScript puro**
+All of this built with a simple, performant, and easy-to-maintain stack.
 
 ---
 
-## 🧠 Como Funciona o Multi-Tenant
+## ✨ Key Differentials
 
-A aplicação utiliza um modelo de **multi-tenancy por identificação de loja**:
+* **Multi-tenant** architecture with tenant isolation
+* Real-time store customization (colors + logo)
+* Simple and fast POS for in-store sales
+* **WhatsApp-based checkout** (no complex payment gateways)
+* Instant blocking of delinquent merchants
+* Lightweight frontend: **HTML + CSS + Vanilla JavaScript**
 
-* Cada lojista possui um `storeId`
-* Todas as entidades principais (produtos, pedidos, usuários) estão vinculadas a esse `storeId`
-* O acesso às rotas é protegido por **JWT**, validando:
+---
 
-  * Autenticação do usuário
-  * Associação correta à loja
+## 🧠 How the Multi-Tenant System Works
 
-Fluxo simplificado:
+The application uses a **store-based multi-tenancy model**:
+
+* Each merchant has a `storeId`
+* All main entities (products, orders, users) are linked to this `storeId`
+* Route access is protected by **JWT**, validating:
+
+  * User authentication
+  * Correct store association
+
+Simplified flow:
 
 ```
-Usuário → Login → JWT
-JWT → contém userId + storeId
-Rotas → filtram dados pelo storeId
+User → Login → JWT
+JWT → contains userId + storeId
+Routes → filter data by storeId
 ```
 
-Isso garante que:
+This ensures that:
 
-* Um lojista **não acessa dados de outro**
-* O Super Admin tem visão global do sistema
-
----
-
-## 👥 Perfis de Usuário
-
-| Perfil            | Descrição                                                    |
-| ----------------- | ------------------------------------------------------------ |
-| **Super Admin**   | Gerencia lojistas, bloqueios, métricas globais e faturamento |
-| **Lojista**       | Gerencia produtos, pedidos, PDV e personalização da loja     |
-| **Cliente Final** | Navega na vitrine e finaliza pedidos via WhatsApp            |
+* One merchant **cannot access another merchant’s data**
+* The Super Admin has a global view of the system
 
 ---
 
-## 🚀 Funcionalidades em Destaque
+## 👥 User Roles
+
+| Role             | Description                                                   |
+| ---------------- | ------------------------------------------------------------- |
+| **Super Admin**  | Manages merchants, blocks access, global metrics, and revenue |
+| **Merchant**     | Manages products, orders, POS, and store customization        |
+| **End Customer** | Browses the storefront and completes orders via WhatsApp      |
+
+---
+
+## 🚀 Highlighted Features
 
 ### 👑 Super Admin (SaaS)
 
-* Dashboard global (lojistas ativos/inadimplentes)
-* Criação de novas lojas com slug automático
-* Bloqueio e reativação de acesso
-* Visão geral da performance do sistema
+* Global dashboard (active/delinquent merchants)
+* Create new stores with automatic slug generation
+* Block and reactivate access
+* Overall system performance view
 
-### 🏪 Painel do Lojista
+### 🏪 Merchant Dashboard
 
-* Dashboard financeiro (vendas do dia/semana)
-* CRUD de produtos com variações (tamanho/cor)
-* Upload de múltiplas imagens
-* Kanban de pedidos (Aguardando → Pago → Enviado → Entregue)
-* PDV otimizado para touchscreen
-* Personalização visual da loja
-* Troca de senha obrigatória no primeiro login
+* Financial dashboard (daily/weekly sales)
+* Full product CRUD with variations (size/color)
+* Multiple image uploads
+* Order Kanban (Pending → Paid → Shipped → Delivered)
+* Touchscreen-optimized POS
+* Store visual customization
+* Mandatory password change on first login
 
-### 🛒 Vitrine Pública
+### 🛒 Public Storefront
 
-* Layout responsivo
-* Busca por nome e filtro por categoria
-* Carrinho dinâmico
-* Checkout que gera mensagem automática no WhatsApp do lojista
-
----
-
-## 🗂️ Estrutura de Pastas
-
-```
-├── prisma/             # Schema do banco de dados (Tabelas)
-├── public/             # Frontend (Arquivos estáticos)
-│   ├── admin/          # Painel do Lojista e SaaS (HTML/JS/CSS)
-│   ├── login/          # Telas de Login e Recuperação
-│   └── img/            # (Opcional) Imagens locais
-├── src/
-│   ├── config/         # Configurações (Multer, Cloudinary)
-│   ├── controllers/    # Lógica de negócio (Produtos, Pedidos, Auth)
-│   ├── middlewares/    # Proteção de rotas (JWT, permissões)
-│   ├── routes/         # Rotas da API
-│   └── services/       # Serviços auxiliares (Email, etc.)
-└── server.js           # Arquivo principal do servidor
-```
+* Responsive layout
+* Search by name and category filter
+* Dynamic shopping cart
+* Checkout that generates a formatted WhatsApp message
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🗂️ Folder Structure
+
+```
+backend
+    ├── prisma/             # Database schema (tables)
+    ├── src/
+    │   ├── config/         # Configurations (Multer, Cloudinary)
+    │   ├── controllers/    # Business logic (Products, Orders, Auth)
+    │   ├── middlewares/    # Route protection (JWT, permissions)
+    │   ├── routes/         # API route definitions
+    │   └── services/       # Auxiliary services (Email, etc.)
+    └── server.js           # Main server entry point
+
+frontend
+    ├── admin/
+    └── login/
+```
+
+---
+
+## 🛠️ Technologies Used
 
 * **Backend**: Node.js + Express
-* **Banco de Dados**: MySQL + Prisma ORM
-* **Autenticação**: JWT + bcrypt
-* **Upload de imagens**: Multer + Cloudinary
-* **Frontend**: HTML5, CSS3, JavaScript puro
-* **Deploy sugerido**: Railway, Render, Vercel
+* **Database**: MySQL + Prisma ORM
+* **Authentication**: JWT + bcrypt
+* **Image Upload**: Multer + Cloudinary
+* **Frontend**: HTML5, CSS3, Vanilla JavaScript
+* **Recommended Deploy**: Railway, Render, Vercel
 
 ---
 
-## ⚡ Instalação Local
+## ⚡ Local Installation
 
-### Pré-requisitos
+### Requirements
 
 * Node.js ≥ 18
 * MySQL
-* Conta no Cloudinary
+* Cloudinary account
 
-### Passo a passo
+### Setup
 
 ```bash
-git clone https://github.com/SEU-USUARIO/saas-store-roupas.git
+git clone https://github.com/YOUR-USERNAME/saas-store-roupas.git
 cd saas-store-roupas
 npm install
 cp .env.example .env
@@ -146,77 +149,93 @@ npm start
 
 ---
 
-## 🔐 Exemplo de .env
+## 🔐 .env Example
 
 ```env
-# Configuração do Servidor
+# Server Configuration
 PORT=3000
 
-# Banco de Dados (MySQL)
+# Database (MySQL)
 DATABASE_URL="mysql://root:123456@localhost:3306/saas_roupas"
 
-# Segurança
-JWT_SECRET="digite_uma_senha_muito_segura_aqui"
+# Security
+JWT_SECRET="enter_a_very_secure_secret_here"
 
 # Cloudinary
-CLOUDINARY_CLOUD_NAME=seu_cloud_name
-CLOUDINARY_API_KEY=sua_api_key
-CLOUDINARY_API_SECRET=sua_api_secret
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 ---
 
-## 🔒 Segurança – Estado Atual
+## 🔒 Security – Current State
 
-Implementado:
+Implemented:
 
-* Autenticação com JWT
-* Hash de senhas com bcrypt
-* Proteção básica de rotas
+* JWT-based authentication
+* Password hashing with bcrypt
+* Basic route protection
 
-Recomendado antes de produção:
+Recommended before production:
 
 * Rate limiting
-* Validação de inputs
-* HTTPS obrigatório
-* Backup automático do banco
-* Auditoria mais rigorosa de permissões
+* Input validation
+* HTTPS enforcement
+* Automatic database backups
+* Stricter permission auditing
 
 ---
 
 ## 🛤️ Roadmap
 
-* Integração com Pix e Cartão
-* Notificações via WhatsApp Business API
-* Relatórios avançados
-* Sistema de cupons e promoções
-* SEO por loja
-* Exportação de pedidos (CSV/Excel)
+* Pix and credit/debit card integration
+* WhatsApp Business API notifications
+* Advanced reports
+* Coupons and promotions system
+* Store-level SEO
+* Order export (CSV/Excel)
 
 ---
 
-## 🌐 Demo Online
+## 🌐 Online Demo
 
-🔗 **Vitrine Pública (Frontend – GitHub Pages)**
+🔗 **Demo – Public Storefront**
+(Static frontend – GitHub Pages)
+[https://michaelcdutra.github.io/vitrineTeste/](https://michaelcdutra.github.io/vitrineTeste/)
+
+> ⚠️ **Note**: this storefront was created **exclusively for demonstration purposes**, to test and showcase the SaaS features.
+> Each merchant’s final storefront can be implemented in **multiple frontend approaches**, while keeping the same API and business rules.
+
+👉 **Demo – Admin Dashboard (SaaS)**
+(Frontend – GitHub Pages | Backend running in a private environment)
 [https://michaelcdutra.github.io/Site-de-Roupas/](https://michaelcdutra.github.io/Site-de-Roupas/)
 
-> ⚠️ **Observação**: este link demonstra a **interface da vitrine pública**.
-> O backend (API, autenticação e painel administrativo) roda em ambiente privado por questões de segurança.
+> 🔐 **Demo credentials**
+> Test environment with fictional data. No real customer information is used.
+>
+> **Super Admin**
+> Email: [admin@saas.com](mailto:admin@saas.com)
+> Password: 123456
+>
+> **Merchant**
+> Email: [lojistateste@email.com](mailto:lojistateste@email.com)
+> Password: 123456
 
 ---
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-1. Faça um fork do projeto
-2. Crie uma branch (`feat/nova-feature`)
-3. Commit suas alterações
-4. Abra um Pull Request
+1. Fork the repository
+2. Create a branch (`feat/new-feature`)
+3. Commit your changes
+4. Open a Pull Request
 
 ---
 
-## 👨‍💻 Autor
+## 👨‍💻 Author
 
-Desenvolvido com 💙 e muito JavaScript por **Michael Douglas**
-Betim – MG, Brasil
+Developed with 💙 and lots of JavaScript by **Michael Douglas**
+Betim – MG, Brazil
 
-Este projeto faz parte do meu portfólio e estudo prático sobre arquitetura SaaS e sistemas multi-tenant.
+This project is part of my portfolio and a practical study on SaaS and multi-tenant architecture.
